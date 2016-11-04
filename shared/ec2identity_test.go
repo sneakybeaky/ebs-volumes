@@ -1,4 +1,4 @@
-package main
+package shared
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -44,7 +44,7 @@ func TestHappyPath(t *testing.T) {
 	)
 	defer server.Close()
 
-	undertest := newEC2Identity(unit.Session, &aws.Config{Endpoint: aws.String(server.URL + "/latest")})
+	undertest := NewEC2Identity(unit.Session, &aws.Config{Endpoint: aws.String(server.URL + "/latest")})
 
 	instanceid, err := undertest.GetInstanceID()
 	assert.Nil(t, err, "Expect no error, %v", err)

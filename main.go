@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"log"
@@ -11,9 +12,9 @@ type EC2Identity struct {
 	EC2Metadata *ec2metadata.EC2Metadata
 }
 
-func newEC2Identity(session *session.Session) *EC2Identity {
+func newEC2Identity(session *session.Session, cfgs ...*aws.Config) *EC2Identity {
 	return &EC2Identity{
-		EC2Metadata: ec2metadata.New(session),
+		EC2Metadata: ec2metadata.New(session, cfgs...),
 	}
 
 }
@@ -21,7 +22,7 @@ func newEC2Identity(session *session.Session) *EC2Identity {
 func (self EC2Identity) GetInstanceID() (string, error) {
 	doc, err := self.EC2Metadata.GetInstanceIdentityDocument()
 
-	if (err != nil) {
+	if err != nil {
 		return "", err
 	}
 

@@ -8,6 +8,7 @@ import (
 	"log"
 )
 
+// A EC2Identity provides information about an EC2 instance.
 type EC2Identity struct {
 	EC2Metadata *ec2metadata.EC2Metadata
 }
@@ -19,8 +20,9 @@ func newEC2Identity(session *session.Session, cfgs ...*aws.Config) *EC2Identity 
 
 }
 
-func (self EC2Identity) GetInstanceID() (string, error) {
-	doc, err := self.EC2Metadata.GetInstanceIdentityDocument()
+// GetInstanceID returns the instance id for this EC2 instance
+func (e EC2Identity) GetInstanceID() (string, error) {
+	doc, err := e.EC2Metadata.GetInstanceIdentityDocument()
 
 	if err != nil {
 		return "", err

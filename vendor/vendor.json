@@ -111,6 +111,12 @@
 			"revisionTime": "2016-11-01T23:30:21Z"
 		},
 		{
+			"checksumSHA1": "1QmQ3FqV37w0Zi44qv8pA1GeR0A=",
+			"path": "github.com/aws/aws-sdk-go/private/protocol/ec2query",
+			"revision": "967a4b67114c61521c4b514d7c9a2feb869918e9",
+			"revisionTime": "2016-11-01T23:30:21Z"
+		},
+		{
 			"checksumSHA1": "ZqY5RWavBLWTo6j9xqdyBEaNFRk=",
 			"path": "github.com/aws/aws-sdk-go/private/protocol/query",
 			"revision": "967a4b67114c61521c4b514d7c9a2feb869918e9",
@@ -131,6 +137,18 @@
 		{
 			"checksumSHA1": "eUEkjyMPAuekKBE4ou+nM9tXEas=",
 			"path": "github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil",
+			"revision": "967a4b67114c61521c4b514d7c9a2feb869918e9",
+			"revisionTime": "2016-11-01T23:30:21Z"
+		},
+		{
+			"checksumSHA1": "Eo9yODN5U99BK0pMzoqnBm7PCrY=",
+			"path": "github.com/aws/aws-sdk-go/private/waiter",
+			"revision": "967a4b67114c61521c4b514d7c9a2feb869918e9",
+			"revisionTime": "2016-11-01T23:30:21Z"
+		},
+		{
+			"checksumSHA1": "6h4tJ9wVtbYb9wG4srtUxyPoAYM=",
+			"path": "github.com/aws/aws-sdk-go/service/ec2",
 			"revision": "967a4b67114c61521c4b514d7c9a2feb869918e9",
 			"revisionTime": "2016-11-01T23:30:21Z"
 		},
@@ -165,6 +183,12 @@
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "e8554b8641db39598be7f6342874b958f12ae1d4",
 			"revisionTime": "2015-12-07T18:24:34Z"
+		},
+		{
+			"checksumSHA1": "FJpLCKpZidLU6sgIks1JdRu138o=",
+			"path": "github.com/sneakybeaky/aws-volumes/cmd/instanceid",
+			"revision": "4184cd14f04993c99ff1bd7f79b3f1918ff0cc1b",
+			"revisionTime": "2016-11-06T09:49:36Z"
 		},
 		{
 			"checksumSHA1": "5XAzjZrdlLh1mgd7xEvoK6LeLCA=",

@@ -18,6 +18,8 @@ func main() {
 	id, err := ec2Identity.GetInstanceID()
 
 	if err != nil {
-		fmt.Printf("My id is %s \n", id)
+		log.Fatalf("failed to get instance id %v\n", err)
 	}
+	fmt.Printf("%s\n", id)
+
 }

@@ -28,3 +28,10 @@ _testmain.go
 .idea
 *.iml
 
+/.gitignore
+### Terraform template
+# Compiled files
+*.tfstate
+*.tfstate.backup
+*.tfvars
+

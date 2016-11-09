@@ -13,7 +13,7 @@ func main() {
 		log.Fatalf("failed to create session %v\n", err)
 	}
 
-	ec2Identity := shared.NewEC2Identity(sess)
+	ec2Identity := shared.NewEC2Instance(sess)
 
 	id, err := ec2Identity.GetInstanceID()
 

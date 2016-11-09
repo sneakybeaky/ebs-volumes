@@ -46,7 +46,7 @@ func TestHappyPath(t *testing.T) {
 
 	undertest := NewEC2Instance(unit.Session, &aws.Config{Endpoint: aws.String(server.URL + "/latest")})
 
-	instanceid, err := undertest.GetInstanceID()
+	instanceid, err := undertest.InstanceID()
 	assert.Nil(t, err, "Expect no error, %v", err)
 	assert.Equal(t, instanceid, "i-1234567890abcdef0")
 }

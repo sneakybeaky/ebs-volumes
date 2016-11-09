@@ -15,7 +15,7 @@ func main() {
 
 	ec2Identity := shared.NewEC2Instance(sess)
 
-	id, err := ec2Identity.GetInstanceID()
+	id, err := ec2Identity.InstanceID()
 
 	if err != nil {
 		log.Fatalf("failed to get instance id %v\n", err)

@@ -49,15 +49,14 @@ func main() {
 
 	ec2Instance := shared.NewEC2Instance(sess)
 
-	id, err := ec2Instance.GetInstanceID()
+	id, err := ec2Instance.InstanceID()
 
 	if err != nil {
 		log.Fatalf("failed to get instance id %v\n", err)
 	}
 	fmt.Printf("%s\n", id)
 
-	ec2Region := shared.NewEC2Region(sess)
-	region,err := ec2Region.Region()
+	region,err := ec2Instance.Region()
 	if err != nil {
 		log.Fatalf("failed to get region %v\n", err)
 	}

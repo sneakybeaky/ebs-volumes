@@ -2,42 +2,35 @@ package main
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sneakybeaky/aws-volumes/shared"
 	"log"
 )
 
-func findAttachedVolumesFor(session *session.Session, instanceid string) ([]*ec2.Volume, error) {
+func listVolumes(instance *shared.EC2Instance) {
 
-	svc := ec2.New(session)
-
-	params := &ec2.DescribeVolumesInput{
-		Filters: []*ec2.Filter{
-			{
-				Name: aws.String("attachment.instance-id"),
-				Values: []*string{
-					aws.String(instanceid),
-				},
-			},
-		},
-	}
-
-	resp, err := svc.DescribeVolumes(params)
+	volumes, err := instance.AttachedVolumes()
 
 	if err != nil {
-		return nil, err
+		log.Fatalf("failed to find attached volumes %v\n", err)
 	}
 
-	return resp.Volumes, nil
-
+	fmt.Println("Following volumes are attached")
+	for _,volume := range volumes {
+		fmt.Println(volume)
+	}
 }
 
-func detachVolumes(volumes []*ec2.Volume) {
-	fmt.Println("Following volumes are attached")
-	for volume := range volumes {
-		fmt.Println(volume)
+func listTags(instance *shared.EC2Instance) {
+	tags, err := instance.Tags()
+
+	if err != nil {
+		log.Fatalf("failed to find tags %v\n", err)
+	}
+
+	fmt.Println("Following tags found")
+	for _,tag := range tags {
+		fmt.Println(tag)
 	}
 }
 
@@ -47,27 +40,26 @@ func main() {
 		log.Fatalf("failed to create session %v\n", err)
 	}
 
-	ec2Instance := shared.NewEC2Instance(sess)
+	metadata := shared.NewEC2InstanceMetadata(sess)
 
-	id, err := ec2Instance.InstanceID()
+	id, err := metadata.InstanceID()
 
 	if err != nil {
 		log.Fatalf("failed to get instance id %v\n", err)
 	}
 	fmt.Printf("%s\n", id)
 
-	region,err := ec2Instance.Region()
+	region, err := metadata.Region()
 	if err != nil {
 		log.Fatalf("failed to get region %v\n", err)
 	}
 
 	sess.Config.Region = &region
-	volumes, err := findAttachedVolumesFor(sess, id)
 
-	if err != nil {
-		log.Fatalf("failed to find attached volumes %v\n", err)
-	}
+	instance := shared.NewEC2Instance(metadata, sess)
 
-	detachVolumes(volumes)
+	listVolumes(instance)
+
+	listTags(instance)
 
 }

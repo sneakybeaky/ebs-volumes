@@ -11,7 +11,7 @@ type EC2InstanceMetadata struct {
 	EC2Metadata *ec2metadata.EC2Metadata
 }
 
-func NewEC2Instance(session *session.Session, cfgs ...*aws.Config) *EC2InstanceMetadata {
+func NewEC2InstanceMetadata(session *session.Session, cfgs ...*aws.Config) *EC2InstanceMetadata {
 	return &EC2InstanceMetadata{
 		EC2Metadata: ec2metadata.New(session, cfgs...),
 	}

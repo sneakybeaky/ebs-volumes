@@ -4,7 +4,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"strings"
 )
+
+type AllocatedVolume struct {
+	VolumeID string
+	Device   string
+}
+
+const volume_tag_prefix = "volume_"
 
 // A EC2InstanceMetadata provides metadata about an EC2 instance.
 type EC2Instance struct {
@@ -60,7 +68,7 @@ func (e EC2Instance) Tags() ([]*ec2.TagDescription, error) {
 
 	params := &ec2.DescribeTagsInput{
 		Filters: []*ec2.Filter{
-			{ // Required
+			{// Required
 				Name: aws.String("resource-id"),
 				Values: []*string{
 					aws.String(instanceid), // Required
@@ -76,4 +84,23 @@ func (e EC2Instance) Tags() ([]*ec2.TagDescription, error) {
 	}
 
 	return resp.Tags, nil
+}
+
+func (e EC2Instance) AllocatedVolumes() ([]AllocatedVolume, error) {
+	var allocated []AllocatedVolume
+
+	if tags, err := e.Tags(); err != nil {
+		return allocated, err
+	} else {
+		for _, tag := range tags {
+			if strings.HasPrefix(*tag.Key, volume_tag_prefix) {
+
+				key := *tag.Key
+				device := key[len(volume_tag_prefix):]
+				allocated = append(allocated, AllocatedVolume{VolumeID:*tag.Value, Device: device})
+			}
+		}
+	}
+
+	return allocated, nil
 }

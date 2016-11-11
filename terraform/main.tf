@@ -93,6 +93,8 @@ resource "aws_instance" "web" {
   tags {
     Name = "test",
     foo = "bar"
+    "volume_/dev/sdb" = "volume1"
+    "volume_/dev/sdc" = "volume2"
   }
 
 }

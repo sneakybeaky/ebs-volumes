@@ -34,6 +34,19 @@ func listTags(instance *shared.EC2Instance) {
 	}
 }
 
+func listAllocatedVolumes(instance *shared.EC2Instance) {
+	volumes, err := instance.AllocatedVolumes()
+
+	if err != nil {
+		log.Fatalf("failed to find allocated volumes %v\n", err)
+	}
+
+	fmt.Println("Following volumes found")
+	for _,volume := range volumes {
+		fmt.Printf("%+v\n", volume)
+	}
+}
+
 func main() {
 	sess, err := session.NewSession()
 	if err != nil {
@@ -61,5 +74,7 @@ func main() {
 	listVolumes(instance)
 
 	listTags(instance)
+
+	listAllocatedVolumes(instance)
 
 }

@@ -61,6 +61,9 @@ resource "aws_key_pair" "auth" {
 }
 
 resource "aws_instance" "web" {
+
+  availability_zone = "${var.aws_availability_zone}"
+
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
   connection {
@@ -93,10 +96,20 @@ resource "aws_instance" "web" {
   tags {
     Name = "test",
     foo = "bar"
-    "volume_/dev/sdb" = "volume1"
-    "volume_/dev/sdc" = "volume2"
+    "volume_/dev/sdb" = "${aws_ebs_volume.volume1.id}"
+    "volume_/dev/sdc" = "${aws_ebs_volume.volume2.id}"
   }
 
+}
+
+resource "aws_ebs_volume" "volume1" {
+  size = 1
+  availability_zone = "${var.aws_availability_zone}"
+}
+
+resource "aws_ebs_volume" "volume2" {
+  size = 1
+  availability_zone = "${var.aws_availability_zone}"
 }
 
 resource "aws_iam_instance_profile" "test_profile" {

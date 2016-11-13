@@ -17,6 +17,11 @@ variable "aws_region" {
   default     = "eu-west-1"
 }
 
+variable "aws_availability_zone" {
+  description = "AWS availability zone to use."
+  default     = "eu-west-1a"
+}
+
 # Ubuntu Precise 12.04 LTS (x64)
 variable "aws_amis" {
   type = "map"

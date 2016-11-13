@@ -16,7 +16,7 @@ func listVolumes(instance *shared.EC2Instance) {
 	}
 
 	fmt.Println("Following volumes are attached")
-	for _,volume := range volumes {
+	for _, volume := range volumes {
 		fmt.Println(volume)
 	}
 }
@@ -29,7 +29,7 @@ func listTags(instance *shared.EC2Instance) {
 	}
 
 	fmt.Println("Following tags found")
-	for _,tag := range tags {
+	for _, tag := range tags {
 		fmt.Println(tag)
 	}
 }
@@ -42,9 +42,13 @@ func listAllocatedVolumes(instance *shared.EC2Instance) {
 	}
 
 	fmt.Println("Following volumes found")
-	for _,volume := range volumes {
+	for _, volume := range volumes {
 		fmt.Printf("%+v\n", volume)
 	}
+}
+
+func attachAllocatedVolumes(instance *shared.EC2Instance) {
+	instance.AttachAllocatedVolumes()
 }
 
 func main() {
@@ -76,5 +80,7 @@ func main() {
 	listTags(instance)
 
 	listAllocatedVolumes(instance)
+
+	attachAllocatedVolumes(instance)
 
 }

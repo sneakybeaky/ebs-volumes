@@ -68,24 +68,23 @@ func doAttach(instance *shared.EC2Instance) {
 		fmt.Fprintf(os.Stderr, "Unable to find allocated volumes : %s", err)
 	} else {
 
-		done := make(chan error)
+		done := make(chan int)
 		defer close(done)
 
 		for _, volume := range volumes {
 
-			go func() {
-				volume := volume
-				done <- volume.Attach()
-			}()
+			go func(volume *shared.AllocatedVolume) {
+
+				if err := volume.Attach(); err != nil {
+					fmt.Fprintf(os.Stderr, "Unable to attach volume : %s\n", err)
+				}
+				done <- 1
+			}(volume)
 
 		}
 
 		for i := 0; i < len(volumes); i++ {
-			done <- err
-
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Unable to attach volume : %s", err)
-			}
+			<-done
 		}
 	}
 

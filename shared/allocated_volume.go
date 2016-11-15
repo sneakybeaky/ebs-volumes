@@ -35,7 +35,7 @@ func (volume AllocatedVolume) Attach() error {
 	if _, err := volume.EC2.AttachVolume(opts); err != nil {
 
 		if awsErr, ok := err.(awserr.Error); ok {
-			log.Printf("[WARN] Error attaching volume (%s) to instance (%s), message: \"%s\", code: \"%s\"",
+			return fmt.Errorf("Error attaching volume (%s) to instance (%s), message: \"%s\", code: \"%s\"",
 				volume.VolumeId, volume.InstanceId, awsErr.Message(), awsErr.Code())
 		}
 
@@ -52,8 +52,7 @@ func (volume AllocatedVolume) Attach() error {
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			log.Printf(
-				"Error waiting for Volume (%s) to attach to Instance: %s, error: %s",
+			return fmt.Errorf("Error waiting for Volume (%s) to attach to Instance: %s, error: %s",
 				volume.VolumeId, volume.InstanceId, err)
 		}
 	}

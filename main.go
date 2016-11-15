@@ -2,14 +2,17 @@ package main
 
 import "flag"
 import (
-	"fmt"
 	"errors"
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/sneakybeaky/aws-volumes/shared"
+	"log"
 	"os"
 )
 
 type action struct {
 	action string
-	set bool
+	set    bool
 }
 
 func (action *action) String() string {
@@ -31,7 +34,7 @@ func (action *action) Set(value string) error {
 		action.action = value
 		return nil
 	}
-	return fmt.Errorf("Unrecognised action '%s'",action)
+	return fmt.Errorf("Unrecognised action '%s'", action)
 
 }
 
@@ -48,6 +51,46 @@ func init() {
 	flag.Var(&actionFlag, "action", "One of attach, detach or info")
 }
 
+func showInfo(instance *shared.EC2Instance) error {
+	if volumes, err := instance.AllocatedVolumes(); err != nil {
+		return err
+	} else {
+		for _, volume := range volumes {
+			volume.Info(os.Stdout)
+		}
+	}
+
+	return nil
+}
+
+func doAttach(instance *shared.EC2Instance) {
+	if volumes, err := instance.AllocatedVolumes(); err != nil {
+		return err
+	} else {
+
+		done := make(chan error)
+		defer close(done)
+
+		for _, volume := range volumes {
+
+			go func() {
+				volume := volume
+				done <- volume.Attach()
+			}()
+
+		}
+
+		for i := 0; i < len(volumes); i++ {
+			err <- done
+
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Unable to attach volume : %s", err)
+			}
+		}
+	}
+
+}
+
 func main() {
 
 	flag.Parse()
@@ -55,4 +98,27 @@ func main() {
 	if actionFlag.set == false {
 		flag.Usage()
 	}
+
+	sess, err := session.NewSession()
+	if err != nil {
+		log.Fatalf("failed to create session %v\n", err)
+	}
+
+	metadata := shared.NewEC2InstanceMetadata(sess)
+
+	if region, err := metadata.Region(); err != nil {
+		log.Fatalf("failed to get region %v\n", err)
+	} else {
+		sess.Config.Region = &region
+	}
+
+	instance := shared.NewEC2Instance(metadata, sess)
+
+	switch actionFlag.action {
+	case "info":
+		showInfo(instance)
+	case "attach":
+		doAttach(instance)
+	}
+
 }

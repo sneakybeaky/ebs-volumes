@@ -446,12 +446,6 @@
 			"revisionTime": "2016-11-06T22:57:15Z"
 		},
 		{
-			"checksumSHA1": "0MTsfIYenb2gTzeP4SmzKc83sSQ=",
-			"path": "github.com/sneakybeaky/aws-volumes/cmd/instanceid",
-			"revision": "64dbc628e7a429905675faefb7beaa27df84d976",
-			"revisionTime": "2016-11-13T19:35:03Z"
-		},
-		{
 			"checksumSHA1": "Q2V7Zs3diLmLfmfbiuLpSxETSuY=",
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "976c720a22c8eb4eb6a0b4348ad85ad12491a506",

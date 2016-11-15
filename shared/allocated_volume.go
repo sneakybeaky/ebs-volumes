@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"log"
 	"time"
+	"io"
 )
 
 type AllocatedVolume struct {
@@ -59,6 +60,10 @@ func (volume AllocatedVolume) Attach() error {
 
 	return nil
 
+}
+
+func (volume AllocatedVolume) Info(w io.Writer) {
+	fmt.Fprintf(w,"Instance ID %s, Device Name %s, Volume ID %s",volume.InstanceId,volume.DeviceName, volume.VolumeId)
 }
 
 func volumeAttachmentStateRefreshFunc(conn *ec2.EC2, volumeID, instanceID string) resource.StateRefreshFunc {

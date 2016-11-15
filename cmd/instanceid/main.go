@@ -43,13 +43,11 @@ func listAllocatedVolumes(instance *shared.EC2Instance) {
 
 	fmt.Println("Following volumes found")
 	for _, volume := range volumes {
-		fmt.Printf("%+v\n", volume)
+		fmt.Printf("%+v\n", *volume)
 	}
 }
 
-func attachAllocatedVolumes(instance *shared.EC2Instance) {
-	instance.AttachAllocatedVolumes()
-}
+
 
 func main() {
 	sess, err := session.NewSession()
@@ -80,7 +78,5 @@ func main() {
 	listTags(instance)
 
 	listAllocatedVolumes(instance)
-
-	attachAllocatedVolumes(instance)
 
 }

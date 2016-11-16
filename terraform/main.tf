@@ -97,8 +97,8 @@ resource "aws_instance" "web" {
   tags {
     Name = "test",
     foo = "bar"
-    "volume_/dev/sdb" = "${aws_ebs_volume.volume1.id}"
-    "volume_/dev/sdc" = "${aws_ebs_volume.volume2.id}"
+    "volume_/dev/sdf" = "${aws_ebs_volume.volume1.id}"
+    "volume_/dev/sdg" = "${aws_ebs_volume.volume2.id}"
   }
 
 }

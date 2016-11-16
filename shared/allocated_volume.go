@@ -5,10 +5,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform/helper/resource"
 	"log"
-	"time"
 	"io"
+	"github.com/aws/aws-sdk-go/private/waiter"
 )
 
 type AllocatedVolume struct {
@@ -42,16 +41,8 @@ func (volume AllocatedVolume) Attach() error {
 
 	} else {
 
-		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"attaching"},
-			Target:     []string{"attached"},
-			Refresh:    volumeAttachmentStateRefreshFunc(volume.EC2, volume.VolumeId, volume.InstanceId),
-			Timeout:    5 * time.Minute,
-			Delay:      10 * time.Second,
-			MinTimeout: 3 * time.Second,
-		}
+		err := volume.waitUntilVolumeAttached()
 
-		_, err = stateConf.WaitForState()
 		if err != nil {
 			return fmt.Errorf("Error waiting for Volume (%s) to attach to Instance: %s, error: %s",
 				volume.VolumeId, volume.InstanceId, err)
@@ -66,36 +57,52 @@ func (volume AllocatedVolume) Info(w io.Writer) {
 	fmt.Fprintf(w,"Instance ID %s, Device Name %s, Volume ID %s\n",volume.InstanceId,volume.DeviceName, volume.VolumeId)
 }
 
-func volumeAttachmentStateRefreshFunc(conn *ec2.EC2, volumeID, instanceID string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
 
-		request := &ec2.DescribeVolumesInput{
-			VolumeIds: []*string{aws.String(volumeID)},
-			Filters: []*ec2.Filter{
-				&ec2.Filter{
-					Name:   aws.String("attachment.instance-id"),
-					Values: []*string{aws.String(instanceID)},
-				},
+
+func (volume AllocatedVolume) describeVolumesInput() *ec2.DescribeVolumesInput {
+	return &ec2.DescribeVolumesInput{
+		VolumeIds: []*string{aws.String(volume.VolumeId)},
+		Filters: []*ec2.Filter{
+			&ec2.Filter{
+				Name:   aws.String("attachment.instance-id"),
+				Values: []*string{aws.String(volume.InstanceId)},
 			},
-		}
-
-		resp, err := conn.DescribeVolumes(request)
-		if err != nil {
-			if awsErr, ok := err.(awserr.Error); ok {
-				return nil, "failed", fmt.Errorf("code: %s, message: %s", awsErr.Code(), awsErr.Message())
-			}
-			return nil, "failed", err
-		}
-
-		if len(resp.Volumes) > 0 {
-			v := resp.Volumes[0]
-			for _, a := range v.Attachments {
-				if a.InstanceId != nil && *a.InstanceId == instanceID {
-					return a, *a.State, nil
-				}
-			}
-		}
-		// assume detached if volume count is 0
-		return 42, "detached", nil
+		},
 	}
+}
+
+// waitUntilVolumeAttached uses the Amazon EC2 API operation
+// DescribeVolumes to wait for a condition to be met before returning.
+// If the condition is not meet within the max attempt window an error will
+// be returned.
+func (volume AllocatedVolume) waitUntilVolumeAttached() error {
+
+	input := volume.describeVolumesInput()
+
+	waiterCfg := waiter.Config{
+		Operation:   "DescribeVolumes",
+		Delay:       15,
+		MaxAttempts: 40,
+		Acceptors: []waiter.WaitAcceptor{
+			{
+				State:    "success",
+				Matcher:  "pathAll",
+				Argument: "Volumes[].Attachments[].State",
+				Expected: "attached",
+			},
+			{
+				State:    "failure",
+				Matcher:  "pathAny",
+				Argument: "Volumes[].Attachments[].State",
+				Expected: "detached",
+			},
+		},
+	}
+
+	w := waiter.Waiter{
+		Client: volume.EC2,
+		Input:  input,
+		Config: waiterCfg,
+	}
+	return w.Wait()
 }

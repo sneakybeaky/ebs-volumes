@@ -21,6 +21,7 @@ func (action *action) String() string {
 
 func (action *action) Set(value string) error {
 
+
 	if action.action != "" {
 		return errors.New("The action has already been set")
 	}

@@ -88,13 +88,13 @@ func (volume AllocatedVolume) waitUntilVolumeAttached() error {
 				State:    "success",
 				Matcher:  "pathAll",
 				Argument: "Volumes[].Attachments[].State",
-				Expected: "attached",
+				Expected: ec2.AttachmentStatusAttached,
 			},
 			{
 				State:    "failure",
 				Matcher:  "pathAny",
 				Argument: "Volumes[].Attachments[].State",
-				Expected: "detached",
+				Expected: ec2.AttachmentStatusDetached,
 			},
 		},
 	}

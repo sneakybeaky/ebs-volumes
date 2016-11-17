@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"log"
-	"io"
 	"github.com/aws/aws-sdk-go/private/waiter"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/sneakybeaky/aws-volumes/shared/log"
+	"io"
 )
 
 type AllocatedVolume struct {
@@ -30,7 +30,7 @@ func (volume AllocatedVolume) Attach() error {
 		VolumeId:   aws.String(volume.VolumeId),
 	}
 
-	log.Printf("[DEBUG] Attaching Volume (%s) to Instance (%s)", volume.VolumeId, volume.InstanceId)
+	log.Debug.Printf("Attaching Volume (%s) to Instance (%s)", volume.VolumeId, volume.InstanceId)
 
 	if _, err := volume.EC2.AttachVolume(opts); err != nil {
 
@@ -54,10 +54,8 @@ func (volume AllocatedVolume) Attach() error {
 }
 
 func (volume AllocatedVolume) Info(w io.Writer) {
-	fmt.Fprintf(w,"Instance ID %s, Device Name %s, Volume ID %s\n",volume.InstanceId,volume.DeviceName, volume.VolumeId)
+	fmt.Fprintf(w, "Instance ID %s, Device Name %s, Volume ID %s\n", volume.InstanceId, volume.DeviceName, volume.VolumeId)
 }
-
-
 
 func (volume AllocatedVolume) describeVolumesInput() *ec2.DescribeVolumesInput {
 	return &ec2.DescribeVolumesInput{

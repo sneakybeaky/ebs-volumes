@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/sneakybeaky/aws-volumes/shared"
-	"log"
+	"github.com/sneakybeaky/aws-volumes/shared/log"
+	stdlog "log"
 	"os"
 )
 
@@ -20,7 +21,6 @@ func (action *action) String() string {
 }
 
 func (action *action) Set(value string) error {
-
 
 	if action.action != "" {
 		return errors.New("The action has already been set")
@@ -66,7 +66,7 @@ func showInfo(instance *shared.EC2Instance) error {
 
 func doAttach(instance *shared.EC2Instance) {
 	if volumes, err := instance.AllocatedVolumes(); err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to find allocated volumes : %s", err)
+		log.Error.Printf("Unable to find allocated volumes : %s", err)
 	} else {
 
 		done := make(chan int)
@@ -77,7 +77,7 @@ func doAttach(instance *shared.EC2Instance) {
 			go func(volume *shared.AllocatedVolume) {
 
 				if err := volume.Attach(); err != nil {
-					fmt.Fprintf(os.Stderr, "Unable to attach volume : %s\n", err)
+					log.Error.Printf("Unable to attach volume : %s\n", err)
 				}
 				done <- 1
 			}(volume)
@@ -101,13 +101,13 @@ func main() {
 
 	sess, err := session.NewSession()
 	if err != nil {
-		log.Fatalf("failed to create session %v\n", err)
+		stdlog.Fatalf("failed to create session %v\n", err)
 	}
 
 	metadata := shared.NewEC2InstanceMetadata(sess)
 
 	if region, err := metadata.Region(); err != nil {
-		log.Fatalf("failed to get region %v\n", err)
+		stdlog.Fatalf("failed to get region %v\n", err)
 	} else {
 		sess.Config.Region = &region
 	}

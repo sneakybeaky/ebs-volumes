@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/sneakybeaky/aws-volumes/shared"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
-	stdlog "log"
 	"os"
 )
 
@@ -101,13 +100,13 @@ func main() {
 
 	sess, err := session.NewSession()
 	if err != nil {
-		stdlog.Fatalf("failed to create session %v\n", err)
+		log.Error.Fatalf("failed to create session %v\n", err)
 	}
 
 	metadata := shared.NewEC2InstanceMetadata(sess)
 
 	if region, err := metadata.Region(); err != nil {
-		stdlog.Fatalf("failed to get region %v\n", err)
+		log.Error.Fatalf("failed to get region %v\n", err)
 	} else {
 		sess.Config.Region = &region
 	}

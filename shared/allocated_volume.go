@@ -24,13 +24,18 @@ func NewAllocatedVolume(volumeId string, deviceName string, instanceId string, E
 
 func (volume AllocatedVolume) Attach() error {
 
+	if err := volume.waitUntilAvailable(); err != nil {
+		return fmt.Errorf("Error waiting for Volume (%s) to become available, error: %s",
+			volume.VolumeId, err)
+	}
+
 	opts := &ec2.AttachVolumeInput{
 		Device:     aws.String(volume.DeviceName),
 		InstanceId: aws.String(volume.InstanceId),
 		VolumeId:   aws.String(volume.VolumeId),
 	}
 
-	log.Debug.Printf("Attaching Volume (%s) to Instance (%s)", volume.VolumeId, volume.InstanceId)
+	log.Debug.Printf("Attaching Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
 
 	if _, err := volume.EC2.AttachVolume(opts); err != nil {
 
@@ -41,11 +46,13 @@ func (volume AllocatedVolume) Attach() error {
 
 	} else {
 
-		err := volume.waitUntilVolumeAttached()
+		err := volume.waitUntilAttached()
 
 		if err != nil {
-			return fmt.Errorf("Error waiting for Volume (%s) to attach to Instance: %s, error: %s",
-				volume.VolumeId, volume.InstanceId, err)
+			return fmt.Errorf("Error waiting for Volume (%s) to attach at (%s), error: %s",
+				volume.VolumeId, volume.DeviceName, err)
+		} else {
+			log.Info.Printf("Attached Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
 		}
 	}
 
@@ -69,11 +76,17 @@ func (volume AllocatedVolume) describeVolumesInput() *ec2.DescribeVolumesInput {
 	}
 }
 
+func (volume AllocatedVolume) waitUntilAvailable() error {
+
+	log.Debug.Printf("Waiting for volume (%s) to become available\n", volume.InstanceId)
+	return volume.EC2.WaitUntilVolumeAvailable(volume.describeVolumesInput())
+}
+
 // waitUntilVolumeAttached uses the Amazon EC2 API operation
 // DescribeVolumes to wait for a condition to be met before returning.
 // If the condition is not meet within the max attempt window an error will
 // be returned.
-func (volume AllocatedVolume) waitUntilVolumeAttached() error {
+func (volume AllocatedVolume) waitUntilAttached() error {
 
 	input := volume.describeVolumesInput()
 
@@ -102,5 +115,8 @@ func (volume AllocatedVolume) waitUntilVolumeAttached() error {
 		Input:  input,
 		Config: waiterCfg,
 	}
+
+	log.Debug.Printf("Waiting for volume (%s) to be attached at (%s)\n", volume.InstanceId, volume.DeviceName)
+
 	return w.Wait()
 }

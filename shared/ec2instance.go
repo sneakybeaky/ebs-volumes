@@ -4,8 +4,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"strings"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
+	"strings"
+	"sync"
+	"bytes"
+	"os"
 )
 
 const volume_tag_prefix = "volume_"
@@ -73,56 +76,56 @@ func (e EC2Instance) AllocatedVolumes() ([]*AllocatedVolume, error) {
 }
 
 func (e EC2Instance) DetachVolumes() {
-
-	if volumes, err := e.AllocatedVolumes(); err != nil {
-		log.Error.Printf("Unable to find allocated volumes : %s", err)
-	} else {
-
-		done := make(chan int)
-		defer close(done)
-
-		for _, volume := range volumes {
-
-			go func(volume *AllocatedVolume) {
-
-				if err := volume.Detach(); err != nil {
-					log.Error.Printf("Unable to detach volume : %s\n", err)
-				}
-				done <- 1
-			}(volume)
-
-		}
-
-		for i := 0; i < len(volumes); i++ {
-			<-done
-		}
-	}
-
+	e.applyToVolumes(detachVolume)
 }
 
 func (e EC2Instance) AttachVolumes() {
+	e.applyToVolumes(attachVolume)
+}
+
+func (e EC2Instance) ShowVolumesInfo() {
+	e.applyToVolumes(showVolumeInfo)
+}
+var attachVolume = func(volume *AllocatedVolume) {
+
+	if err := volume.Attach(); err != nil {
+		log.Error.Printf("Unable to attach volume : %s\n", err)
+	}
+}
+
+var detachVolume = func(volume *AllocatedVolume) {
+
+	if err := volume.Detach(); err != nil {
+		log.Error.Printf("Unable to detach volume : %s\n", err)
+	}
+}
+
+var showVolumeInfo = func(volume *AllocatedVolume) {
+	buf := new(bytes.Buffer)
+	volume.Info(buf)
+	os.Stdout.WriteString(buf.String())
+}
+
+func (e EC2Instance) applyToVolumes(action func(volume *AllocatedVolume)) {
 	if volumes, err := e.AllocatedVolumes(); err != nil {
 		log.Error.Printf("Unable to find allocated volumes : %s", err)
 	} else {
 
-		done := make(chan int)
-		defer close(done)
+		var wg sync.WaitGroup
 
 		for _, volume := range volumes {
 
-			go func(volume *AllocatedVolume) {
+			wg.Add(1)
+			go func(action func(volume *AllocatedVolume), volume *AllocatedVolume) {
 
-				if err := volume.Attach(); err != nil {
-					log.Error.Printf("Unable to attach volume : %s\n", err)
-				}
-				done <- 1
-			}(volume)
+				defer wg.Done()
+				action(volume)
+
+			}(action, volume)
 
 		}
 
-		for i := 0; i < len(volumes); i++ {
-			<-done
-		}
+		wg.Wait()
 	}
 
 }

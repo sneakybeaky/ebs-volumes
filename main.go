@@ -51,24 +51,15 @@ func init() {
 	flag.Var(&actionFlag, "action", "One of attach, detach or info")
 }
 
-func showInfo(instance *shared.EC2Instance) error {
-	if volumes, err := instance.AllocatedVolumes(); err != nil {
-		return err
-	} else {
-		for _, volume := range volumes {
-			volume.Info(os.Stdout)
-		}
-	}
-
-	return nil
+var showInfo = func(instance *shared.EC2Instance) {
+	instance.ShowVolumesInfo()
 }
 
-func doAttach(instance *shared.EC2Instance) {
+var doAttach = func (instance *shared.EC2Instance) {
 	instance.AttachVolumes()
-
 }
 
-func doDetach(instance *shared.EC2Instance) {
+var doDetach =  func (instance *shared.EC2Instance) {
 	instance.DetachVolumes()
 }
 

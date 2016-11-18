@@ -208,7 +208,7 @@ func (volume AllocatedVolume) waitUntilDetached() error {
 		Config: waiterCfg,
 	}
 
-	log.Debug.Printf("Waiting for volume (%s) to be detached from (%s)\n", volume.InstanceId, volume.DeviceName)
+	log.Debug.Printf("Waiting for volume (%s) to be detached from (%s)\n", volume.VolumeId, volume.DeviceName)
 
 	return w.Wait()
 }

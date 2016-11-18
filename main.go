@@ -90,6 +90,33 @@ func doAttach(instance *shared.EC2Instance) {
 
 }
 
+func doDetach(instance *shared.EC2Instance) {
+	if volumes, err := instance.AllocatedVolumes(); err != nil {
+		log.Error.Printf("Unable to find allocated volumes : %s", err)
+	} else {
+
+		done := make(chan int)
+		defer close(done)
+
+		for _, volume := range volumes {
+
+			go func(volume *shared.AllocatedVolume) {
+
+				if err := volume.Detach(); err != nil {
+					log.Error.Printf("Unable to detach volume : %s\n", err)
+				}
+				done <- 1
+			}(volume)
+
+		}
+
+		for i := 0; i < len(volumes); i++ {
+			<-done
+		}
+	}
+
+}
+
 func main() {
 
 	flag.Parse()
@@ -118,6 +145,8 @@ func main() {
 		showInfo(instance)
 	case "attach":
 		doAttach(instance)
+	case "detach":
+		doDetach(instance)
 	}
 
 }

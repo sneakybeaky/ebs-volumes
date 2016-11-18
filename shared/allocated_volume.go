@@ -24,6 +24,8 @@ func NewAllocatedVolume(volumeId string, deviceName string, instanceId string, E
 
 func (volume AllocatedVolume) Attach() error {
 
+	log.Info.Printf("Attaching Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
+
 	if err := volume.waitUntilAvailable(); err != nil {
 		return fmt.Errorf("Error waiting for Volume (%s) to become available, error: %s",
 			volume.VolumeId, err)
@@ -78,8 +80,10 @@ func (volume AllocatedVolume) describeVolumesInput() *ec2.DescribeVolumesInput {
 
 func (volume AllocatedVolume) waitUntilAvailable() error {
 
-	log.Debug.Printf("Waiting for volume (%s) to become available\n", volume.InstanceId)
-	return volume.EC2.WaitUntilVolumeAvailable(volume.describeVolumesInput())
+	log.Debug.Printf("Waiting for volume (%s) to become available\n", volume.VolumeId)
+	return volume.EC2.WaitUntilVolumeAvailable(&ec2.DescribeVolumesInput{
+		VolumeIds: []*string{aws.String(volume.VolumeId)},
+	})
 }
 
 // waitUntilVolumeAttached uses the Amazon EC2 API operation

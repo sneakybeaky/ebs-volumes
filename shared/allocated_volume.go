@@ -60,7 +60,6 @@ func (volume AllocatedVolume) Attach() error {
 
 }
 
-
 func (volume AllocatedVolume) Detach() error {
 
 	log.Info.Printf("Detaching Volume (%s) from (%s)\n", volume.VolumeId, volume.DeviceName)
@@ -94,8 +93,22 @@ func (volume AllocatedVolume) Detach() error {
 
 }
 
-func (volume AllocatedVolume) Info(w io.Writer) {
-	fmt.Fprintf(w, "Instance ID %s, Device Name %s, Volume ID %s\n", volume.InstanceId, volume.DeviceName, volume.VolumeId)
+func (volume AllocatedVolume) Info(w io.Writer) error {
+
+	if status, err := volume.EC2.DescribeVolumes(volume.describeVolumesInputWhenDetached()); err != nil {
+
+		if awsErr, ok := err.(awserr.Error); ok {
+			return fmt.Errorf("Error getting volume status for Volume (%s), message: \"%s\", code: \"%s\"",
+				volume.VolumeId, awsErr.Message(), awsErr.Code())
+		}
+
+	} else {
+		volumeStatus := status.Volumes[0]
+		fmt.Fprintf(w, "Volume ID (%s), Device Name (%s), Status is %s\n",
+			volume.VolumeId, volume.DeviceName, *volumeStatus.State)
+	}
+
+	return nil
 }
 
 func (volume AllocatedVolume) describeVolumesInputWhenAttached() *ec2.DescribeVolumesInput {

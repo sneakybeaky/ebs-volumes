@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"strings"
+	"github.com/sneakybeaky/aws-volumes/shared/log"
 )
 
 const volume_tag_prefix = "volume_"
@@ -21,35 +22,6 @@ func NewEC2Instance(metadata *EC2InstanceMetadata, session *session.Session, cfg
 		EC2:      ec2.New(session, cfg...),
 		metadata: metadata,
 	}
-
-}
-
-func (e EC2Instance) AttachedVolumes() ([]*ec2.Volume, error) {
-
-	instanceid, err := e.metadata.InstanceID()
-
-	if err != nil {
-		return nil, err
-	}
-
-	params := &ec2.DescribeVolumesInput{
-		Filters: []*ec2.Filter{
-			{
-				Name: aws.String("attachment.instance-id"),
-				Values: []*string{
-					aws.String(instanceid),
-				},
-			},
-		},
-	}
-
-	resp, err := e.EC2.DescribeVolumes(params)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.Volumes, nil
 
 }
 
@@ -98,4 +70,59 @@ func (e EC2Instance) AllocatedVolumes() ([]*AllocatedVolume, error) {
 	}
 
 	return allocated, nil
+}
+
+func (e EC2Instance) DetachVolumes() {
+
+	if volumes, err := e.AllocatedVolumes(); err != nil {
+		log.Error.Printf("Unable to find allocated volumes : %s", err)
+	} else {
+
+		done := make(chan int)
+		defer close(done)
+
+		for _, volume := range volumes {
+
+			go func(volume *AllocatedVolume) {
+
+				if err := volume.Detach(); err != nil {
+					log.Error.Printf("Unable to detach volume : %s\n", err)
+				}
+				done <- 1
+			}(volume)
+
+		}
+
+		for i := 0; i < len(volumes); i++ {
+			<-done
+		}
+	}
+
+}
+
+func (e EC2Instance) AttachVolumes() {
+	if volumes, err := e.AllocatedVolumes(); err != nil {
+		log.Error.Printf("Unable to find allocated volumes : %s", err)
+	} else {
+
+		done := make(chan int)
+		defer close(done)
+
+		for _, volume := range volumes {
+
+			go func(volume *AllocatedVolume) {
+
+				if err := volume.Attach(); err != nil {
+					log.Error.Printf("Unable to attach volume : %s\n", err)
+				}
+				done <- 1
+			}(volume)
+
+		}
+
+		for i := 0; i < len(volumes); i++ {
+			<-done
+		}
+	}
+
 }

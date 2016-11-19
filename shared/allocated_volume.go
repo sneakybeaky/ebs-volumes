@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
 	"io"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
 type AllocatedVolume struct {

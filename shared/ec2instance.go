@@ -1,14 +1,14 @@
 package shared
 
 import (
+	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
+	"os"
 	"strings"
 	"sync"
-	"bytes"
-	"os"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
 const volume_tag_prefix = "volume_"
@@ -86,6 +86,7 @@ func (e EC2Instance) AttachVolumes() {
 func (e EC2Instance) ShowVolumesInfo() {
 	e.applyToVolumes(showVolumeInfo)
 }
+
 var attachVolume = func(volume *AllocatedVolume) {
 
 	if err := volume.Attach(); err != nil {

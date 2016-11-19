@@ -1,28 +1,27 @@
 package shared
 
 import (
-	"testing"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"fmt"
 	"errors"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"testing"
 )
 
 type mockMetadata struct {
-    Metadata
+	Metadata
 	instanceId string
-	region string
+	region     string
 }
 
 func (m *mockMetadata) InstanceID() (string, error) {
-    return m.instanceId, nil
+	return m.instanceId, nil
 }
 
 func (m *mockMetadata) Region() (string, error) {
 	return m.region, nil
 }
-
 
 type mockEC2Service struct {
 	ec2iface.EC2API
@@ -38,24 +37,24 @@ func (svc *mockEC2Service) DescribeTags(input *ec2.DescribeTagsInput) (*ec2.Desc
 		if *resourceId == svc.expectedResourceId {
 
 			return &ec2.DescribeTagsOutput{
-				Tags: []* ec2.TagDescription{
+				Tags: []*ec2.TagDescription{
 					&ec2.TagDescription{
-						Key: aws.String("volume_/dev/sda"),
-						ResourceId: resourceId,
+						Key:          aws.String("volume_/dev/sda"),
+						ResourceId:   resourceId,
 						ResourceType: aws.String("instance"),
-						Value: aws.String("vol-1234567"),
+						Value:        aws.String("vol-1234567"),
 					},
 					&ec2.TagDescription{
-						Key: aws.String("volume_/dev/sdb"),
-						ResourceId: resourceId,
+						Key:          aws.String("volume_/dev/sdb"),
+						ResourceId:   resourceId,
 						ResourceType: aws.String("instance"),
-						Value: aws.String("vol-54321"),
+						Value:        aws.String("vol-54321"),
 					},
 				},
 			}, nil
 		}
 
-		return nil, fmt.Errorf("No tags for %s",*resourceId)
+		return nil, fmt.Errorf("No tags for %s", *resourceId)
 
 	}
 
@@ -66,17 +65,17 @@ func TestFindAllocatedVolumes(t *testing.T) {
 
 	metadata := &mockMetadata{instanceId: "id-98765", region: "erewhon"}
 
-	var underTest = NewEC2Instance(metadata,&mockEC2Service{expectedResourceId:"id-98765"})
+	var underTest = NewEC2Instance(metadata, &mockEC2Service{expectedResourceId: "id-98765"})
 
 	if volumes, err := underTest.AllocatedVolumes(); err != nil {
-		t.Errorf("Shouldn't have failed : got error %s",err.Error())
+		t.Errorf("Shouldn't have failed : got error %s", err.Error())
 	} else {
 		if len(volumes) != 2 {
 			t.Errorf("Should have got 2 allocated volumes, but got %d", len(volumes))
 		}
 
-		assertVolumesEqual(t, volumes[0],NewAllocatedVolume("vol-1234567","/dev/sda","id-98765",nil))
-		assertVolumesEqual(t, volumes[1],NewAllocatedVolume("vol-54321","/dev/sdb","id-98765",nil))
+		assertVolumesEqual(t, volumes[0], NewAllocatedVolume("vol-1234567", "/dev/sda", "id-98765", nil))
+		assertVolumesEqual(t, volumes[1], NewAllocatedVolume("vol-54321", "/dev/sdb", "id-98765", nil))
 
 	}
 
@@ -84,7 +83,34 @@ func TestFindAllocatedVolumes(t *testing.T) {
 
 func assertVolumesEqual(t *testing.T, left *AllocatedVolume, right *AllocatedVolume) {
 
-	if (left.DeviceName != right.DeviceName || left.InstanceId != right.InstanceId || left.VolumeId != right.VolumeId) {
-		t.Errorf("Expected %s but got %s",left.String(),right.String())
+	if left.DeviceName != right.DeviceName || left.InstanceId != right.InstanceId || left.VolumeId != right.VolumeId {
+		t.Errorf("Expected %s but got %s", left.String(), right.String())
 	}
+}
+
+func TestAttachAllocatedVolumes(t *testing.T) {
+
+	metadata := &mockMetadata{instanceId: "id-98765", region: "erewhon"}
+
+	var underTest = NewEC2Instance(metadata, &mockEC2Service{expectedResourceId: "id-98765"})
+
+	saved := attachVolume
+	defer func() { attachVolume = saved }()
+
+	set := make(map[string]struct{}, 2)
+	attachVolume = func(volume *AllocatedVolume) { set[volume.VolumeId] = struct{}{} }
+
+	underTest.AttachVolumes()
+
+	if len(set) != 2 {
+		t.Errorf("Should have been 2 volumes attached, but %d were", len(set))
+	}
+
+	expectedVolumes := []string{"vol-1234567", "vol-54321"}
+	for _, expectedVolume := range expectedVolumes {
+		if _, ok := set[expectedVolume]; !ok {
+			t.Errorf("Volume %s should have been attached, but wasn't", expectedVolume)
+		}
+	}
+
 }

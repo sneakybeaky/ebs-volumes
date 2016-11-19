@@ -23,6 +23,10 @@ func NewAllocatedVolume(volumeId string, deviceName string, instanceId string, s
 	return &AllocatedVolume{VolumeId: volumeId, DeviceName: deviceName, InstanceId: instanceId, svc: svc}
 }
 
+func (volume AllocatedVolume) String() string {
+	return fmt.Sprintf("AllocatedVolume{ VolumeId : %s, DeviceName : %s, InstanceId : %s}", volume.VolumeId, volume.DeviceName, volume.InstanceId)
+}
+
 func (volume AllocatedVolume) Attach() error {
 
 	log.Info.Printf("Attaching Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)

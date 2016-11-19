@@ -8,18 +8,19 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
 	"io"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
 type AllocatedVolume struct {
 	VolumeId   string
 	DeviceName string
 	InstanceId string
-	EC2        *ec2.EC2
+	svc        ec2iface.EC2API
 }
 
-func NewAllocatedVolume(volumeId string, deviceName string, instanceId string, EC2 *ec2.EC2) *AllocatedVolume {
+func NewAllocatedVolume(volumeId string, deviceName string, instanceId string, svc ec2iface.EC2API) *AllocatedVolume {
 
-	return &AllocatedVolume{VolumeId: volumeId, DeviceName: deviceName, InstanceId: instanceId, EC2: EC2}
+	return &AllocatedVolume{VolumeId: volumeId, DeviceName: deviceName, InstanceId: instanceId, svc: svc}
 }
 
 func (volume AllocatedVolume) Attach() error {
@@ -37,7 +38,7 @@ func (volume AllocatedVolume) Attach() error {
 		VolumeId:   aws.String(volume.VolumeId),
 	}
 
-	if _, err := volume.EC2.AttachVolume(opts); err != nil {
+	if _, err := volume.svc.AttachVolume(opts); err != nil {
 
 		if awsErr, ok := err.(awserr.Error); ok {
 			return fmt.Errorf("Error attaching volume (%s) to instance (%s), message: \"%s\", code: \"%s\"",
@@ -70,7 +71,7 @@ func (volume AllocatedVolume) Detach() error {
 		VolumeId:   aws.String(volume.VolumeId),
 	}
 
-	if _, err := volume.EC2.DetachVolume(opts); err != nil {
+	if _, err := volume.svc.DetachVolume(opts); err != nil {
 
 		if awsErr, ok := err.(awserr.Error); ok {
 			return fmt.Errorf("Error Detaching volume (%s) to instance (%s), message: \"%s\", code: \"%s\"",
@@ -95,7 +96,7 @@ func (volume AllocatedVolume) Detach() error {
 
 func (volume AllocatedVolume) Info(w io.Writer) error {
 
-	if status, err := volume.EC2.DescribeVolumes(volume.describeVolumesInputWhenDetached()); err != nil {
+	if status, err := volume.svc.DescribeVolumes(volume.describeVolumesInputWhenDetached()); err != nil {
 
 		if awsErr, ok := err.(awserr.Error); ok {
 			return fmt.Errorf("Error getting volume status for Volume (%s), message: \"%s\", code: \"%s\"",
@@ -132,7 +133,7 @@ func (volume AllocatedVolume) describeVolumesInputWhenDetached() *ec2.DescribeVo
 func (volume AllocatedVolume) waitUntilAvailable() error {
 
 	log.Debug.Printf("Waiting for volume (%s) to become available\n", volume.VolumeId)
-	return volume.EC2.WaitUntilVolumeAvailable(volume.describeVolumesInputWhenDetached())
+	return volume.svc.WaitUntilVolumeAvailable(volume.describeVolumesInputWhenDetached())
 }
 
 // waitUntilVolumeAttached uses the Amazon EC2 API operation
@@ -164,7 +165,7 @@ func (volume AllocatedVolume) waitUntilAttached() error {
 	}
 
 	w := waiter.Waiter{
-		Client: volume.EC2,
+		Client: volume.svc,
 		Input:  input,
 		Config: waiterCfg,
 	}
@@ -203,7 +204,7 @@ func (volume AllocatedVolume) waitUntilDetached() error {
 	}
 
 	w := waiter.Waiter{
-		Client: volume.EC2,
+		Client: volume.svc,
 		Input:  input,
 		Config: waiterCfg,
 	}

@@ -6,6 +6,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 )
 
+type Metadata interface {
+	InstanceID() (string, error)
+	Region() (string, error)
+}
+
 // A EC2InstanceMetadata provides metadata about an EC2 instance.
 type EC2InstanceMetadata struct {
 	EC2Metadata *ec2metadata.EC2Metadata

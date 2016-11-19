@@ -2,27 +2,27 @@ package shared
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
 	"strings"
 	"sync"
 	"bytes"
 	"os"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
 const volume_tag_prefix = "volume_"
 
 // A EC2InstanceMetadata provides metadata about an EC2 instance.
 type EC2Instance struct {
-	EC2      *ec2.EC2
-	metadata *EC2InstanceMetadata
+	svc      ec2iface.EC2API
+	metadata Metadata
 }
 
-func NewEC2Instance(metadata *EC2InstanceMetadata, session *session.Session, cfg ...*aws.Config) *EC2Instance {
+func NewEC2Instance(metadata Metadata, svc ec2iface.EC2API) *EC2Instance {
 
 	return &EC2Instance{
-		EC2:      ec2.New(session, cfg...),
+		svc:      svc,
 		metadata: metadata,
 	}
 
@@ -47,7 +47,7 @@ func (e EC2Instance) Tags() ([]*ec2.TagDescription, error) {
 		},
 		MaxResults: aws.Int64(1000),
 	}
-	resp, err := e.EC2.DescribeTags(params)
+	resp, err := e.svc.DescribeTags(params)
 
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func (e EC2Instance) AllocatedVolumes() ([]*AllocatedVolume, error) {
 
 				key := *tag.Key
 				device := key[len(volume_tag_prefix):]
-				allocated = append(allocated, NewAllocatedVolume(*tag.Value, device, *tag.ResourceId, e.EC2))
+				allocated = append(allocated, NewAllocatedVolume(*tag.Value, device, *tag.ResourceId, e.svc))
 			}
 		}
 	}

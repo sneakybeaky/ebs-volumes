@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sneakybeaky/aws-volumes/shared"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
 	"os"
@@ -55,11 +56,11 @@ var showInfo = func(instance *shared.EC2Instance) {
 	instance.ShowVolumesInfo()
 }
 
-var doAttach = func (instance *shared.EC2Instance) {
+var doAttach = func(instance *shared.EC2Instance) {
 	instance.AttachVolumes()
 }
 
-var doDetach =  func (instance *shared.EC2Instance) {
+var doDetach = func(instance *shared.EC2Instance) {
 	instance.DetachVolumes()
 }
 
@@ -84,7 +85,7 @@ func main() {
 		sess.Config.Region = &region
 	}
 
-	instance := shared.NewEC2Instance(metadata, sess)
+	instance := shared.NewEC2Instance(metadata, ec2.New(sess))
 
 	switch actionFlag.action {
 	case "info":

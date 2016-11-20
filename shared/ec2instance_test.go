@@ -23,10 +23,13 @@ func (m *mockMetadata) Region() (string, error) {
 	return m.region, nil
 }
 
-type mockEC2Service struct {
+type MockEC2Service struct {
 	ec2iface.EC2API
-	expectedResourceId string
-	DescribeTagsFunc   func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error)
+	DescribeTagsFunc func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error)
+}
+
+func (svc *MockEC2Service) DescribeTags(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
+	return svc.DescribeTagsFunc(input)
 }
 
 type DescribeTagsOutputBuilder struct {
@@ -54,31 +57,35 @@ func (builder DescribeTagsOutputBuilder) Build() *ec2.DescribeTagsOutput {
 	}
 }
 
-func (svc *mockEC2Service) DescribeTags(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
+func describeVolumeTagsForInstance(instanceId string, output *ec2.DescribeTagsOutput) func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
+	return func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
+		if *(input.Filters[0].Name) == "resource-id" {
 
-	expectedOutputBuilder := NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", svc.expectedResourceId, "vol-1234567").WithVolume("/dev/sdb", svc.expectedResourceId, "vol-54321")
+			resourceId := input.Filters[0].Values[0]
 
-	if *(input.Filters[0].Name) == "resource-id" {
+			if *resourceId == instanceId {
 
-		resourceId := input.Filters[0].Values[0]
+				return output, nil
+			}
 
-		if *resourceId == svc.expectedResourceId {
+			return nil, fmt.Errorf("No tags for %s", *resourceId)
 
-			return expectedOutputBuilder.Build(), nil
 		}
 
-		return nil, fmt.Errorf("No tags for %s", *resourceId)
-
+		return nil, errors.New("No resource id set")
 	}
-
-	return nil, errors.New("No resource id set")
 }
 
 func TestFindAllocatedVolumes(t *testing.T) {
 
 	metadata := &mockMetadata{instanceId: "id-98765", region: "erewhon"}
 
-	var underTest = NewEC2Instance(metadata, &mockEC2Service{expectedResourceId: "id-98765"})
+	mockEC2Service := &MockEC2Service{
+		DescribeTagsFunc: describeVolumeTagsForInstance("id-98765",
+			NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", "id-98765", "vol-1234567").WithVolume("/dev/sdb", "id-98765", "vol-54321").Build()),
+	}
+
+	var underTest = NewEC2Instance(metadata, mockEC2Service)
 
 	if volumes, err := underTest.AllocatedVolumes(); err != nil {
 		t.Errorf("Shouldn't have failed : got error %s", err.Error())
@@ -105,13 +112,22 @@ func TestAttachAllocatedVolumes(t *testing.T) {
 
 	metadata := &mockMetadata{instanceId: "id-98765", region: "erewhon"}
 
-	var underTest = NewEC2Instance(metadata, &mockEC2Service{expectedResourceId: "id-98765"})
+	mockEC2Service := &MockEC2Service{
+		DescribeTagsFunc: describeVolumeTagsForInstance("id-98765",
+			NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", "id-98765", "vol-1234567").WithVolume("/dev/sdb", "id-98765", "vol-54321").Build()),
+	}
+
+	var underTest = NewEC2Instance(metadata, mockEC2Service)
 
 	saved := attachVolume
-	defer func() { attachVolume = saved }()
+	defer func() {
+		attachVolume = saved
+	}()
 
 	set := make(map[string]struct{}, 2)
-	attachVolume = func(volume *AllocatedVolume) { set[volume.VolumeId] = struct{}{} }
+	attachVolume = func(volume *AllocatedVolume) {
+		set[volume.VolumeId] = struct{}{}
+	}
 
 	underTest.AttachVolumes()
 

@@ -26,9 +26,37 @@ func (m *mockMetadata) Region() (string, error) {
 type mockEC2Service struct {
 	ec2iface.EC2API
 	expectedResourceId string
+	DescribeTagsFunc   func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error)
+}
+
+type DescribeTagsOutputBuilder struct {
+	TagDescriptions []*ec2.TagDescription
+}
+
+func NewDescribeTagsOutputBuilder() *DescribeTagsOutputBuilder {
+	return &DescribeTagsOutputBuilder{}
+}
+
+func (builder DescribeTagsOutputBuilder) WithVolume(DeviceName string, InstanceId string, VolumeID string) DescribeTagsOutputBuilder {
+	builder.TagDescriptions = append(builder.TagDescriptions, &ec2.TagDescription{
+		Key:          aws.String(fmt.Sprintf("volume_%s", DeviceName)),
+		ResourceId:   aws.String(InstanceId),
+		ResourceType: aws.String("instance"),
+		Value:        aws.String(VolumeID),
+	})
+
+	return builder
+}
+
+func (builder DescribeTagsOutputBuilder) Build() *ec2.DescribeTagsOutput {
+	return &ec2.DescribeTagsOutput{
+		Tags: builder.TagDescriptions,
+	}
 }
 
 func (svc *mockEC2Service) DescribeTags(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
+
+	expectedOutputBuilder := NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", svc.expectedResourceId, "vol-1234567").WithVolume("/dev/sdb", svc.expectedResourceId, "vol-54321")
 
 	if *(input.Filters[0].Name) == "resource-id" {
 
@@ -36,22 +64,7 @@ func (svc *mockEC2Service) DescribeTags(input *ec2.DescribeTagsInput) (*ec2.Desc
 
 		if *resourceId == svc.expectedResourceId {
 
-			return &ec2.DescribeTagsOutput{
-				Tags: []*ec2.TagDescription{
-					&ec2.TagDescription{
-						Key:          aws.String("volume_/dev/sda"),
-						ResourceId:   resourceId,
-						ResourceType: aws.String("instance"),
-						Value:        aws.String("vol-1234567"),
-					},
-					&ec2.TagDescription{
-						Key:          aws.String("volume_/dev/sdb"),
-						ResourceId:   resourceId,
-						ResourceType: aws.String("instance"),
-						Value:        aws.String("vol-54321"),
-					},
-				},
-			}, nil
+			return expectedOutputBuilder.Build(), nil
 		}
 
 		return nil, fmt.Errorf("No tags for %s", *resourceId)

@@ -1,90 +1,19 @@
 package shared_test
 
 import (
-	"errors"
-	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/sneakybeaky/aws-volumes/shared/iface"
-	"github.com/sneakybeaky/aws-volumes/shared"
 	"testing"
+
+	"github.com/sneakybeaky/aws-volumes/shared"
+	"github.com/sneakybeaky/aws-volumes/shared_test/helper"
 )
-
-type MockMetadata struct {
-	iface.Metadata
-	instanceId string
-	region     string
-}
-
-func (m *MockMetadata) InstanceID() (string, error) {
-	return m.instanceId, nil
-}
-
-func (m *MockMetadata) Region() (string, error) {
-	return m.region, nil
-}
-
-type MockEC2Service struct {
-	ec2iface.EC2API
-	DescribeTagsFunc func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error)
-}
-
-func (svc *MockEC2Service) DescribeTags(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
-	return svc.DescribeTagsFunc(input)
-}
-
-type DescribeTagsOutputBuilder struct {
-	TagDescriptions []*ec2.TagDescription
-}
-
-func NewDescribeTagsOutputBuilder() *DescribeTagsOutputBuilder {
-	return &DescribeTagsOutputBuilder{}
-}
-
-func (builder DescribeTagsOutputBuilder) WithVolume(DeviceName string, InstanceId string, VolumeID string) DescribeTagsOutputBuilder {
-	builder.TagDescriptions = append(builder.TagDescriptions, &ec2.TagDescription{
-		Key:          aws.String(fmt.Sprintf("volume_%s", DeviceName)),
-		ResourceId:   aws.String(InstanceId),
-		ResourceType: aws.String("instance"),
-		Value:        aws.String(VolumeID),
-	})
-
-	return builder
-}
-
-func (builder DescribeTagsOutputBuilder) Build() *ec2.DescribeTagsOutput {
-	return &ec2.DescribeTagsOutput{
-		Tags: builder.TagDescriptions,
-	}
-}
-
-func describeVolumeTagsForInstance(instanceId string, output *ec2.DescribeTagsOutput) func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
-	return func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
-		if *(input.Filters[0].Name) == "resource-id" {
-
-			resourceId := input.Filters[0].Values[0]
-
-			if *resourceId == instanceId {
-
-				return output, nil
-			}
-
-			return nil, fmt.Errorf("No tags for %s", *resourceId)
-
-		}
-
-		return nil, errors.New("No resource id set")
-	}
-}
 
 func TestFindAllocatedVolumes(t *testing.T) {
 
-	metadata := &MockMetadata{instanceId: "id-98765", region: "erewhon"}
+	metadata := helper.NewMockMetadata("id-98765", "erewhon")
 
-	mockEC2Service := &MockEC2Service{
-		DescribeTagsFunc: describeVolumeTagsForInstance("id-98765",
-			NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", "id-98765", "vol-1234567").WithVolume("/dev/sdb", "id-98765", "vol-54321").Build()),
+	mockEC2Service := &helper.MockEC2Service{
+		DescribeTagsFunc: helper.DescribeVolumeTagsForInstance("id-98765",
+			helper.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", "id-98765", "vol-1234567").WithVolume("/dev/sdb", "id-98765", "vol-54321").Build()),
 	}
 
 	var underTest = shared.NewEC2Instance(metadata, mockEC2Service)

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/sneakybeaky/aws-volumes/shared"
-	"github.com/sneakybeaky/aws-volumes/shared_test/helper"
+	"github.com/sneakybeaky/aws-volumes/shared/internal/helper"
 )
 
 func TestFindAllocatedVolumes(t *testing.T) {

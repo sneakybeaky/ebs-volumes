@@ -32,6 +32,10 @@ type MockEC2Service struct {
 	DescribeTagsFunc func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error)
 }
 
+func NewMockEC2Service() *MockEC2Service {
+	return &MockEC2Service{}
+}
+
 func (svc *MockEC2Service) DescribeTags(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
 	return svc.DescribeTagsFunc(input)
 }

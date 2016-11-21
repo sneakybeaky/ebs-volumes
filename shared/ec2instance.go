@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
+	"github.com/sneakybeaky/aws-volumes/shared/iface"
 	"os"
 	"strings"
 	"sync"
@@ -16,10 +17,10 @@ const volume_tag_prefix = "volume_"
 // A EC2InstanceMetadata provides metadata about an EC2 instance.
 type EC2Instance struct {
 	svc      ec2iface.EC2API
-	metadata Metadata
+	metadata iface.Metadata
 }
 
-func NewEC2Instance(metadata Metadata, svc ec2iface.EC2API) *EC2Instance {
+func NewEC2Instance(metadata iface.Metadata, svc ec2iface.EC2API) *EC2Instance {
 
 	return &EC2Instance{
 		svc:      svc,

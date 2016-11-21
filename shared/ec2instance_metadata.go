@@ -6,8 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-
-
 // A EC2InstanceMetadata provides metadata about an EC2 instance.
 type EC2InstanceMetadata struct {
 	EC2Metadata *ec2metadata.EC2Metadata

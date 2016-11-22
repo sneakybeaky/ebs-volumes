@@ -29,6 +29,21 @@ func (builder DescribeTagsOutputBuilder) WithVolume(DeviceName string, InstanceI
 	return builder
 }
 
+func (builder DescribeTagsOutputBuilder) DetachVolumes(instanceID string) DescribeTagsOutputBuilder {
+	return builder.DetachVolumesValue(instanceID,"true")
+}
+
+func (builder DescribeTagsOutputBuilder) DetachVolumesValue(instanceID string, value string) DescribeTagsOutputBuilder {
+	builder.TagDescriptions = append(builder.TagDescriptions, &ec2.TagDescription{
+		Key:          aws.String("detach_volumes"),
+		ResourceId:   aws.String(instanceID),
+		ResourceType: aws.String("instance"),
+		Value:        aws.String(value),
+	})
+
+	return builder
+}
+
 // Build generates the final ec2.DescribeTagsOutput structure
 func (builder DescribeTagsOutputBuilder) Build() *ec2.DescribeTagsOutput {
 	return &ec2.DescribeTagsOutput{

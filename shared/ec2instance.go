@@ -2,19 +2,25 @@ package shared
 
 import (
 	"bytes"
+	"os"
+	"strconv"
+	"strings"
+	"sync"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/sneakybeaky/aws-volumes/shared/iface"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
-	"os"
-	"strings"
-	"sync"
 )
 
-const volume_tag_prefix = "volume_"
+// VolumeTagPrefix prefixes the name of a tag describing an allocated volume
+const VolumeTagPrefix = "volume_"
 
-// A EC2InstanceMetadata provides metadata about an EC2 instance.
+// DetachVolumesTag when set to a true value signals volumes can be detached
+const DetachVolumesTag = "detach_volumes"
+
+// EC2Instance provides metadata about an EC2 instance.
 type EC2Instance struct {
 	svc      ec2iface.EC2API
 	metadata iface.Metadata
@@ -60,24 +66,49 @@ func (e EC2Instance) Tags() ([]*ec2.TagDescription, error) {
 func (e EC2Instance) AllocatedVolumes() ([]*AllocatedVolume, error) {
 	var allocated []*AllocatedVolume
 
-	if tags, err := e.Tags(); err != nil {
-		return allocated, err
-	} else {
-		for _, tag := range tags {
-			if strings.HasPrefix(*tag.Key, volume_tag_prefix) {
+	tags, err := e.Tags()
 
-				key := *tag.Key
-				device := key[len(volume_tag_prefix):]
-				allocated = append(allocated, NewAllocatedVolume(*tag.Value, device, *tag.ResourceId, e.svc))
-			}
+	if err != nil {
+		return allocated, err
+	}
+
+	for _, tag := range tags {
+		if strings.HasPrefix(*tag.Key, VolumeTagPrefix) {
+
+			key := *tag.Key
+			device := key[len(VolumeTagPrefix):]
+			allocated = append(allocated, NewAllocatedVolume(*tag.Value, device, *tag.ResourceId, e.svc))
 		}
 	}
 
 	return allocated, nil
 }
 
-func (e EC2Instance) DetachVolumes() {
-	e.applyToVolumes(detachVolume)
+func (e EC2Instance) DetachVolumes() error {
+
+	tags, err := e.Tags()
+
+	if err != nil {
+		return err
+	}
+
+	for _, tag := range tags {
+		if *tag.Key == DetachVolumesTag {
+
+			detachVolumes, _ := strconv.ParseBool(*tag.Value)
+
+			if detachVolumes {
+				e.applyToVolumes(detachVolume)
+			} else {
+				log.Debug.Printf("Tag '%s' value is '%s' - not detaching volumes",DetachVolumesTag,*tag.Value)
+			}
+
+			break
+
+		}
+	}
+
+	return nil
 }
 
 func (e EC2Instance) AttachVolumes() {

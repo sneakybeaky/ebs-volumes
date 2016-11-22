@@ -84,7 +84,7 @@ func (volume AllocatedVolume) Detach() error {
 
 	} else {
 
-		err := volume.waitUntilDetached()
+		err := waitUntilDetached(volume)
 
 		if err != nil {
 			return fmt.Errorf("Error waiting for Volume (%s) to detach at (%s), error: %s",
@@ -183,7 +183,7 @@ func (volume AllocatedVolume) waitUntilAttached() error {
 // DescribeVolumes to wait for a condition to be met before returning.
 // If the condition is not meet within the max attempt window an error will
 // be returned.
-func (volume AllocatedVolume) waitUntilDetached() error {
+var waitUntilDetached = func (volume AllocatedVolume) error {
 
 	input := volume.describeVolumesInputWhenDetached()
 
@@ -215,9 +215,5 @@ func (volume AllocatedVolume) waitUntilDetached() error {
 
 	log.Debug.Printf("Waiting for volume (%s) to be detached from (%s)\n", volume.VolumeId, volume.DeviceName)
 
-	return invokeWait(w)
-}
-
-var invokeWait = func(waiter waiter.Waiter) error{
-	return waiter.Wait()
+	return w.Wait()
 }

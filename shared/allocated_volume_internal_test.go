@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/private/waiter"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sneakybeaky/aws-volumes/shared/internal/helper"
 )
 
@@ -31,20 +29,19 @@ func TestDetachVolumeWhenAttached(t *testing.T) {
 
 func waitForVolumeIDSucceeds(volumeID string) func() {
 
-	saved := invokeWait
+	saved := waitUntilDetached
 
-	invokeWait = func(waiter waiter.Waiter) error {
-		input := waiter.Input.(*ec2.DescribeVolumesInput)
+	waitUntilDetached = func(volume AllocatedVolume) error {
 
-		if *input.VolumeIds[0] != volumeID {
-			return fmt.Errorf("I was expecting %s but got %s", volumeID, *input.VolumeIds[0])
+		if volume.VolumeId != volumeID {
+			return fmt.Errorf("I was expecting %s but got %s", volumeID, volume.VolumeId)
 		}
 		return nil
 
 	}
 
 	return func() {
-		invokeWait = saved
+		waitUntilDetached = saved
 	}
 
 }

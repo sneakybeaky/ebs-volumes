@@ -38,7 +38,7 @@ type MockEC2Service struct {
 	DescribeTagsFunc func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error)
 	DetachVolumeFunc func(*ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error)
 	DescribeVolumesRequestFunc func(*ec2.DescribeVolumesInput) (*request.Request, *ec2.DescribeVolumesOutput)
-
+	WaitUntilVolumeAvailableFunc func(*ec2.DescribeVolumesInput) error
 }
 
 // NewMockEC2Service returns a new instance of NewMockEC2Service
@@ -59,6 +59,11 @@ func (svc *MockEC2Service) DetachVolume(input *ec2.DetachVolumeInput) (*ec2.Volu
 // DescribeVolumesRequest pass through that calls the DescribeVolumesRequestFunc on the mock
 func (svc *MockEC2Service) DescribeVolumesRequest(input *ec2.DescribeVolumesInput) (*request.Request, *ec2.DescribeVolumesOutput) {
 	return svc.DescribeVolumesRequestFunc(input)
+}
+
+// WaitUntilVolumeAvailable pass through that calls the WaitUntilVolumeAvailableFunc on the mock
+func (svc *MockEC2Service) WaitUntilVolumeAvailable(input *ec2.DescribeVolumesInput) error {
+	return svc.WaitUntilVolumeAvailableFunc(input)
 }
 
 

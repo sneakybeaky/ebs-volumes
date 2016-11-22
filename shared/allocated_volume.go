@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/private/waiter"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
@@ -84,7 +83,7 @@ func (volume AllocatedVolume) Detach() error {
 
 	} else {
 
-		err := waitUntilDetached(volume)
+		err := volume.waitUntilAvailable()
 
 		if err != nil {
 			return fmt.Errorf("Error waiting for Volume (%s) to detach at (%s), error: %s",
@@ -124,6 +123,10 @@ func (volume AllocatedVolume) describeVolumesInputWhenAttached() *ec2.DescribeVo
 				Name:   aws.String("attachment.instance-id"),
 				Values: []*string{aws.String(volume.InstanceId)},
 			},
+			&ec2.Filter{
+				Name:   aws.String("attachment.status"),
+				Values: []*string{aws.String(ec2.AttachmentStatusAttached)},
+			},
 		},
 	}
 }
@@ -148,72 +151,8 @@ func (volume AllocatedVolume) waitUntilAttached() error {
 
 	input := volume.describeVolumesInputWhenAttached()
 
-	waiterCfg := waiter.Config{
-		Operation:   "DescribeVolumes",
-		Delay:       15,
-		MaxAttempts: 40,
-		Acceptors: []waiter.WaitAcceptor{
-			{
-				State:    "success",
-				Matcher:  "pathAll",
-				Argument: "Volumes[].Attachments[].State",
-				Expected: ec2.AttachmentStatusAttached,
-			},
-			{
-				State:    "failure",
-				Matcher:  "pathAny",
-				Argument: "Volumes[].Attachments[].State",
-				Expected: ec2.AttachmentStatusDetached,
-			},
-		},
-	}
-
-	w := waiter.Waiter{
-		Client: volume.svc,
-		Input:  input,
-		Config: waiterCfg,
-	}
-
 	log.Debug.Printf("Waiting for volume (%s) to be attached at (%s)\n", volume.VolumeId, volume.DeviceName)
 
-	return w.Wait()
-}
+	return volume.svc.WaitUntilVolumeInUse(input)
 
-// waitUntilVolumeDetached uses the Amazon EC2 API operation
-// DescribeVolumes to wait for a condition to be met before returning.
-// If the condition is not meet within the max attempt window an error will
-// be returned.
-var waitUntilDetached = func (volume AllocatedVolume) error {
-
-	input := volume.describeVolumesInputWhenDetached()
-
-	waiterCfg := waiter.Config{
-		Operation:   "DescribeVolumes",
-		Delay:       15,
-		MaxAttempts: 40,
-		Acceptors: []waiter.WaitAcceptor{
-			{
-				State:    "success",
-				Matcher:  "pathAll",
-				Argument: "Volumes[].State",
-				Expected: ec2.VolumeStateAvailable,
-			},
-			{
-				State:    "failure",
-				Matcher:  "pathAny",
-				Argument: "Volumes[].Attachments[].State",
-				Expected: ec2.AttachmentStatusAttached,
-			},
-		},
-	}
-
-	w := waiter.Waiter{
-		Client: volume.svc,
-		Input:  input,
-		Config: waiterCfg,
-	}
-
-	log.Debug.Printf("Waiting for volume (%s) to be detached from (%s)\n", volume.VolumeId, volume.DeviceName)
-
-	return w.Wait()
 }

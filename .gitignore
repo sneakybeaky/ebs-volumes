@@ -34,4 +34,5 @@ _testmain.go
 *.tfstate
 *.tfstate.backup
 *.tfvars
+coverage.out
 

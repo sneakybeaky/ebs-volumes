@@ -215,5 +215,9 @@ func (volume AllocatedVolume) waitUntilDetached() error {
 
 	log.Debug.Printf("Waiting for volume (%s) to be detached from (%s)\n", volume.VolumeId, volume.DeviceName)
 
-	return w.Wait()
+	return invokeWait(w)
+}
+
+var invokeWait = func(waiter waiter.Waiter) error{
+	return waiter.Wait()
 }

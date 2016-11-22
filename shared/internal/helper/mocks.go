@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/sneakybeaky/aws-volumes/shared/iface"
-	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 // MockMetadata enables plugable behaviour for testing
@@ -35,15 +35,22 @@ func (m *MockMetadata) Region() (string, error) {
 // MockEC2Service enables plugable behaviour for testing
 type MockEC2Service struct {
 	ec2iface.EC2API
-	DescribeTagsFunc func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error)
-	DetachVolumeFunc func(*ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error)
-	DescribeVolumesRequestFunc func(*ec2.DescribeVolumesInput) (*request.Request, *ec2.DescribeVolumesOutput)
+	AttachVolumeFunc             func(*ec2.AttachVolumeInput) (*ec2.VolumeAttachment, error)
+	DescribeTagsFunc             func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error)
+	DetachVolumeFunc             func(*ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error)
+	DescribeVolumesRequestFunc   func(*ec2.DescribeVolumesInput) (*request.Request, *ec2.DescribeVolumesOutput)
 	WaitUntilVolumeAvailableFunc func(*ec2.DescribeVolumesInput) error
+	WaitUntilVolumeInUseFunc     func(*ec2.DescribeVolumesInput) error
 }
 
 // NewMockEC2Service returns a new instance of NewMockEC2Service
 func NewMockEC2Service() *MockEC2Service {
 	return &MockEC2Service{}
+}
+
+// AttachVolume pass through that calls the AttachVolumeFunc on the mock
+func (svc *MockEC2Service) AttachVolume(input *ec2.AttachVolumeInput) (*ec2.VolumeAttachment, error) {
+	return svc.AttachVolumeFunc(input)
 }
 
 // DescribeTags pass through that calls the DescribeTagsFunc on the mock
@@ -66,6 +73,10 @@ func (svc *MockEC2Service) WaitUntilVolumeAvailable(input *ec2.DescribeVolumesIn
 	return svc.WaitUntilVolumeAvailableFunc(input)
 }
 
+// WaitUntilVolumeInUse pass through that calls the WaitUntilVolumeAvailableFunc on the mock
+func (svc *MockEC2Service) WaitUntilVolumeInUse(input *ec2.DescribeVolumesInput) error {
+	return svc.WaitUntilVolumeInUseFunc(input)
+}
 
 //DescribeVolumeTagsForInstance returns a function that returns a canned response for a given instanceId
 func DescribeVolumeTagsForInstance(instanceID string, output *ec2.DescribeTagsOutput) func(input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
@@ -87,15 +98,54 @@ func DescribeVolumeTagsForInstance(instanceID string, output *ec2.DescribeTagsOu
 	}
 }
 
-//DetachVolumeForInstanceIdSuccess returns an empty structure for a specific VolumeID. All others return an error
+//DetachVolumeForVolumeIDSuccess returns an empty structure for a specific VolumeID. All others return an error
 func DetachVolumeForVolumeIDSuccess(volumeID string) func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
 	return func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
 		if *(input.VolumeId) == volumeID {
 
-			return &ec2.VolumeAttachment{} ,nil
+			return &ec2.VolumeAttachment{}, nil
 
 		}
 
-		return nil, fmt.Errorf("Unexpected volume id %s",*input.VolumeId)
+		return nil, fmt.Errorf("Unexpected volume id %s", *input.VolumeId)
+	}
+}
+
+//AttachVolumeForVolumeIDSuccess returns an empty structure for a specific VolumeID. All others return an error
+func AttachVolumeForVolumeIDSuccess(volumeID string) func(input *ec2.AttachVolumeInput) (*ec2.VolumeAttachment, error) {
+	return func(input *ec2.AttachVolumeInput) (*ec2.VolumeAttachment, error) {
+		if *(input.VolumeId) == volumeID {
+
+			return &ec2.VolumeAttachment{}, nil
+
+		}
+
+		return nil, fmt.Errorf("Unexpected volume id %s", *input.VolumeId)
+	}
+}
+
+//WaitUntilVolumeAvailableForVolumeIDSuccess returns a function that returns a nil error for the supplied volume id otherwise a non nil error
+func WaitUntilVolumeAvailableForVolumeIDSuccess(volumeID string) func(input *ec2.DescribeVolumesInput) error {
+	return func(input *ec2.DescribeVolumesInput) error {
+
+		if *input.VolumeIds[0] == volumeID {
+			return nil
+		}
+
+		return fmt.Errorf("Unexpected volume id %s", *input.VolumeIds[0])
+
+	}
+}
+
+//WaitUntilVolumeInUseForVolumeIDSuccess returns a function that returns a nil error for the supplied volume id otherwise a non nil error
+func WaitUntilVolumeInUseForVolumeIDSuccess(volumeID string) func(input *ec2.DescribeVolumesInput) error {
+	return func(input *ec2.DescribeVolumesInput) error {
+
+		if *input.VolumeIds[0] == volumeID {
+			return nil
+		}
+
+		return fmt.Errorf("Unexpected volume id %s", *input.VolumeIds[0])
+
 	}
 }

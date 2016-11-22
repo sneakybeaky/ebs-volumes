@@ -2,12 +2,13 @@ package shared
 
 import (
 	"fmt"
+	"io"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
-	"io"
 )
 
 type AllocatedVolume struct {
@@ -55,9 +56,10 @@ func (volume AllocatedVolume) Attach() error {
 		if err != nil {
 			return fmt.Errorf("Error waiting for Volume (%s) to attach at (%s), error: %s",
 				volume.VolumeId, volume.DeviceName, err)
-		} else {
-			log.Info.Printf("Attached Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
 		}
+
+		log.Info.Printf("Attached Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
+
 	}
 
 	return nil

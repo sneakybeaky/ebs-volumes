@@ -4,11 +4,12 @@ import "flag"
 import (
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sneakybeaky/aws-volumes/shared"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
-	"os"
 )
 
 type action struct {

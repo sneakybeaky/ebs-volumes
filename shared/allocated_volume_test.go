@@ -16,7 +16,7 @@ func TestDetachVolumeWhenAttached(t *testing.T) {
 		WaitUntilVolumeAvailableFunc: helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID),
 	}
 
-	underTest := shared.NewAllocatedVolume("vol-54321", "/dev/sdg", "i-11223344", mockEC2Service)
+	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
 
 	err := underTest.Detach()
 
@@ -35,7 +35,7 @@ func TestAttachVolumeWhenDetached(t *testing.T) {
 		WaitUntilVolumeInUseFunc:     helper.WaitUntilVolumeInUseForVolumeIDSuccess(expectedVolumeID),
 	}
 
-	underTest := shared.NewAllocatedVolume("vol-54321", "/dev/sdg", "i-11223344", mockEC2Service)
+	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
 
 	err := underTest.Attach()
 

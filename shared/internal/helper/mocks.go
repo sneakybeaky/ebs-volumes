@@ -41,6 +41,7 @@ type MockEC2Service struct {
 	DescribeVolumesRequestFunc   func(*ec2.DescribeVolumesInput) (*request.Request, *ec2.DescribeVolumesOutput)
 	WaitUntilVolumeAvailableFunc func(*ec2.DescribeVolumesInput) error
 	WaitUntilVolumeInUseFunc     func(*ec2.DescribeVolumesInput) error
+	DescribeVolumesFunc          func(*ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error)
 }
 
 // NewMockEC2Service returns a new instance of NewMockEC2Service
@@ -76,6 +77,11 @@ func (svc *MockEC2Service) WaitUntilVolumeAvailable(input *ec2.DescribeVolumesIn
 // WaitUntilVolumeInUse pass through that calls the WaitUntilVolumeAvailableFunc on the mock
 func (svc *MockEC2Service) WaitUntilVolumeInUse(input *ec2.DescribeVolumesInput) error {
 	return svc.WaitUntilVolumeInUseFunc(input)
+}
+
+// DescribeVolumes pass through that calls the DescribeVolumesFunc on the mock
+func (svc *MockEC2Service) DescribeVolumes(input *ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error) {
+	return svc.DescribeVolumesFunc(input)
 }
 
 //DescribeVolumeTagsForInstance returns a function that returns a canned response for a given instanceId
@@ -146,6 +152,19 @@ func WaitUntilVolumeInUseForVolumeIDSuccess(volumeID string) func(input *ec2.Des
 		}
 
 		return fmt.Errorf("Unexpected volume id %s", *input.VolumeIds[0])
+
+	}
+}
+
+//DescribeVolumeForID returns a function that returns the supplied output for the supplied volume id otherwise a non nil error
+func DescribeVolumeForID(volumeID string, output *ec2.DescribeVolumesOutput) func(input *ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error) {
+	return func(input *ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error) {
+
+		if *input.VolumeIds[0] == volumeID {
+			return output, nil
+		}
+
+		return nil, fmt.Errorf("Unexpected volume id %s", *input.VolumeIds[0])
 
 	}
 }

@@ -15,13 +15,18 @@ func TestDetachVolumeWhenAttached(t *testing.T) {
 	expectedVolumeID := "vol-54321"
 
 	detachVolumeFuncCalled := false
+	waitUntilVolumeAvailableFuncCalled := false
 
-	mockEC2Service := &helper.MockEC2Service{
+		mockEC2Service := &helper.MockEC2Service{
 		DetachVolumeFunc:    func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
 			detachVolumeFuncCalled = true
 			return helper.DetachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
 		},
-		WaitUntilVolumeAvailableFunc: helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID),
+		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
+			waitUntilVolumeAvailableFuncCalled = true
+			return helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
+		},
+
 	}
 
 	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
@@ -34,6 +39,10 @@ func TestDetachVolumeWhenAttached(t *testing.T) {
 
 	if !detachVolumeFuncCalled {
 		t.Error("The AWS API DetachVolume function wasn't called ")
+	}
+
+	if !waitUntilVolumeAvailableFuncCalled {
+		t.Error("The AWS API WaitUntilVolumeAvailable function wasn't called ")
 	}
 }
 

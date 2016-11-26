@@ -9,6 +9,7 @@ import (
 	"github.com/sneakybeaky/aws-volumes/shared"
 	"github.com/sneakybeaky/aws-volumes/shared/internal/helper"
 	"errors"
+	"io/ioutil"
 )
 
 func TestDetachVolumeWhenAttached(t *testing.T) {
@@ -231,4 +232,24 @@ func TestAttachVolumeErrorCallingWaitUntilVolumeInUseAPI(t *testing.T) {
 	if err == nil {
 		t.Error("Attaching the volume should have failed")
 	}
+}
+
+func TestInfoErrorCallingDescribeVolumesAPI(t *testing.T) {
+
+	expectedVolumeID := "vol-54321"
+
+	mockEC2Service := &helper.MockEC2Service{
+		DescribeVolumesFunc: func(input *ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error) {
+			return nil, errors.New("whoops")
+		},
+	}
+
+	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
+
+	err := underTest.Info(ioutil.Discard)
+
+	if err == nil {
+		t.Error("Getting the volume info should have returned an error")
+	}
+
 }

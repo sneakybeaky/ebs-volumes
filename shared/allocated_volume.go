@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/sneakybeaky/aws-volumes/shared/log"
@@ -102,10 +101,8 @@ func (volume AllocatedVolume) Info(w io.Writer) error {
 
 	if status, err := volume.svc.DescribeVolumes(volume.describeVolumesInputWhenDetached()); err != nil {
 
-		if awsErr, ok := err.(awserr.Error); ok {
-			return fmt.Errorf("Error getting volume status for Volume (%s), message: \"%s\", code: \"%s\"",
-				volume.VolumeId, awsErr.Message(), awsErr.Code())
-		}
+		return fmt.Errorf("Error getting volume status for Volume (%s), cause: \"%s\"",
+			volume.VolumeId, err.Error())
 
 	} else {
 		volumeStatus := status.Volumes[0]

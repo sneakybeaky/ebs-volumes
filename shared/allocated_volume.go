@@ -46,10 +46,8 @@ func (volume AllocatedVolume) Attach() error {
 
 	if _, err := volume.svc.AttachVolume(opts); err != nil {
 
-		if awsErr, ok := err.(awserr.Error); ok {
-			return fmt.Errorf("Error attaching volume (%s) to instance (%s), message: \"%s\", code: \"%s\"",
-				volume.VolumeId, volume.InstanceId, awsErr.Message(), awsErr.Code())
-		}
+		return fmt.Errorf("Error attaching volume (%s) to instance (%s), cause: \"%s\"",
+			volume.VolumeId, volume.InstanceId, err.Error())
 
 	} else {
 

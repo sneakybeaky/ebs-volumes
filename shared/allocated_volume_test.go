@@ -14,8 +14,13 @@ func TestDetachVolumeWhenAttached(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
 
+	detachVolumeFuncCalled := false
+
 	mockEC2Service := &helper.MockEC2Service{
-		DetachVolumeFunc:             helper.DetachVolumeForVolumeIDSuccess(expectedVolumeID),
+		DetachVolumeFunc:    func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
+			detachVolumeFuncCalled = true
+			return helper.DetachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
+		},
 		WaitUntilVolumeAvailableFunc: helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID),
 	}
 
@@ -25,6 +30,10 @@ func TestDetachVolumeWhenAttached(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Detaching the volume shouldn't have failed, but I got %v", err)
+	}
+
+	if !detachVolumeFuncCalled {
+		t.Error("The AWS API DetachVolume function wasn't called ")
 	}
 }
 

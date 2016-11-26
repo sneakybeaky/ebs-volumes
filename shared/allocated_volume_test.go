@@ -172,3 +172,22 @@ func TestDetachVolumeErrorCallingWaitUntilVolumeAvailableAPI(t *testing.T) {
 	}
 
 }
+
+func TestAttachVolumeErrorCallingWaitUntilVolumeAvailableAPI(t *testing.T) {
+
+	expectedVolumeID := "vol-54321"
+
+	mockEC2Service := &helper.MockEC2Service{
+		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
+			return errors.New("whoops")
+		},
+	}
+
+	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
+
+	err := underTest.Attach()
+
+	if err == nil {
+		t.Error("Attaching the volume should have failed")
+	}
+}

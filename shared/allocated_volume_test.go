@@ -17,7 +17,7 @@ func TestDetachVolumeWhenAttached(t *testing.T) {
 	detachVolumeFuncCalled := false
 	waitUntilVolumeAvailableFuncCalled := false
 
-		mockEC2Service := &helper.MockEC2Service{
+	mockEC2Service := &helper.MockEC2Service{
 		DetachVolumeFunc:    func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
 			detachVolumeFuncCalled = true
 			return helper.DetachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
@@ -50,10 +50,23 @@ func TestAttachVolumeWhenDetached(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
 
+	waitUntilVolumeAvailableFuncCalled := false
+	attachVolumeFuncCalled := false
+	waitUntilVolumeInUseFunc := false
+
 	mockEC2Service := &helper.MockEC2Service{
-		AttachVolumeFunc:             helper.AttachVolumeForVolumeIDSuccess(expectedVolumeID),
-		WaitUntilVolumeAvailableFunc: helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID),
-		WaitUntilVolumeInUseFunc:     helper.WaitUntilVolumeInUseForVolumeIDSuccess(expectedVolumeID),
+		AttachVolumeFunc: func(input *ec2.AttachVolumeInput) (*ec2.VolumeAttachment, error) {
+			attachVolumeFuncCalled = true
+			return helper.AttachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
+		},
+		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
+			waitUntilVolumeAvailableFuncCalled = true
+			return helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
+		},
+		WaitUntilVolumeInUseFunc: func(input *ec2.DescribeVolumesInput) error {
+			waitUntilVolumeInUseFunc = true
+			return helper.WaitUntilVolumeInUseForVolumeIDSuccess(expectedVolumeID)(input)
+		},
 	}
 
 	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
@@ -62,6 +75,18 @@ func TestAttachVolumeWhenDetached(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Attaching the volume shouldn't have failed, but I got %v", err)
+	}
+
+	if !waitUntilVolumeAvailableFuncCalled {
+		t.Error("The AWS API WaitUntilVolumeAvailable function wasn't called ")
+	}
+
+	if !attachVolumeFuncCalled {
+		t.Error("The AWS API AttachVolume function wasn't called ")
+	}
+
+	if !waitUntilVolumeInUseFunc {
+		t.Error("The AWS API WaitUntilVolumeInUseFunc function wasn't called ")
 	}
 }
 

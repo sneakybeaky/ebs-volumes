@@ -18,6 +18,7 @@ type AllocatedVolume struct {
 	svc        ec2iface.EC2API
 }
 
+// NewAllocatedVolume returns a new instance of AllocatedVolume
 func NewAllocatedVolume(volumeId string, deviceName string, instanceId string, svc ec2iface.EC2API) *AllocatedVolume {
 
 	return &AllocatedVolume{VolumeId: volumeId, DeviceName: deviceName, InstanceId: instanceId, svc: svc}
@@ -27,6 +28,7 @@ func (volume AllocatedVolume) String() string {
 	return fmt.Sprintf("AllocatedVolume{ VolumeId : %s, DeviceName : %s, InstanceId : %s}", volume.VolumeId, volume.DeviceName, volume.InstanceId)
 }
 
+// Attach attempts to attach the volume
 func (volume AllocatedVolume) Attach() error {
 
 	log.Info.Printf("Attaching Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
@@ -66,6 +68,7 @@ func (volume AllocatedVolume) Attach() error {
 
 }
 
+// Detach attempts to detach the volume
 func (volume AllocatedVolume) Detach() error {
 
 	log.Info.Printf("Detaching Volume (%s) from (%s)\n", volume.VolumeId, volume.DeviceName)
@@ -78,18 +81,16 @@ func (volume AllocatedVolume) Detach() error {
 
 	if _, err := volume.svc.DetachVolume(opts); err != nil {
 
-		if awsErr, ok := err.(awserr.Error); ok {
-			return fmt.Errorf("Error Detaching volume (%s) to instance (%s), message: \"%s\", code: \"%s\"",
-				volume.VolumeId, volume.InstanceId, awsErr.Message(), awsErr.Code())
-		}
+		return fmt.Errorf("Error Detaching volume (%s) to instance (%s), cause : \"%s\"",
+			volume.VolumeId, volume.InstanceId, err.Error())
 
 	} else {
 
 		err := volume.waitUntilAvailable()
 
 		if err != nil {
-			return fmt.Errorf("Error waiting for Volume (%s) to detach at (%s), error: %s",
-				volume.VolumeId, volume.DeviceName, err)
+			return fmt.Errorf("Error waiting for Volume (%s) to detach at (%s), cause: %s",
+				volume.VolumeId, volume.DeviceName, err.Error())
 		} else {
 			log.Info.Printf("Detached Volume (%s) from (%s)\n", volume.VolumeId, volume.DeviceName)
 		}

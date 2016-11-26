@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sneakybeaky/aws-volumes/shared"
 	"github.com/sneakybeaky/aws-volumes/shared/internal/helper"
+	"errors"
 )
 
 func TestDetachVolumeWhenAttached(t *testing.T) {
@@ -125,6 +126,27 @@ func TestInfo(t *testing.T) {
 	}
 	if !strings.Contains(infoString, expectedDeviceName) {
 		t.Errorf("Info message should have contained device name '%s', but message was : '%s'", expectedDeviceName, infoString)
+	}
+
+}
+
+func TestDetachVolumeErrorCallingDetachVolumeAPI(t *testing.T) {
+
+	expectedVolumeID := "vol-54321"
+
+	mockEC2Service := &helper.MockEC2Service{
+		DetachVolumeFunc:    func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
+			return nil,errors.New("whoops")
+		},
+
+	}
+
+	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
+
+	err := underTest.Detach()
+
+	if err == nil {
+		t.Error("Detaching the volume should have failed")
 	}
 
 }

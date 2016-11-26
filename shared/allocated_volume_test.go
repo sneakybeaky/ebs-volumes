@@ -150,3 +150,25 @@ func TestDetachVolumeErrorCallingDetachVolumeAPI(t *testing.T) {
 	}
 
 }
+
+func TestDetachVolumeErrorCallingWaitUntilVolumeAvailableAPI(t *testing.T) {
+
+	expectedVolumeID := "vol-54321"
+
+	mockEC2Service := &helper.MockEC2Service{
+		DetachVolumeFunc:     helper.DetachVolumeForVolumeIDSuccess(expectedVolumeID),
+		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
+			return errors.New("whoops")
+		},
+
+	}
+
+	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
+
+	err := underTest.Detach()
+
+	if err == nil {
+		t.Error("Detaching the volume should have failed")
+	}
+
+}

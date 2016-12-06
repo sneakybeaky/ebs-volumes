@@ -100,7 +100,7 @@ func (e EC2Instance) DetachVolumes() error {
 			if detachVolumes {
 				e.applyToVolumes(detachVolume)
 			} else {
-				log.Debug.Printf("Tag '%s' value is '%s' - not detaching volumes",DetachVolumesTag,*tag.Value)
+				log.Debug.Printf("Tag '%s' value is '%s' - not detaching volumes", DetachVolumesTag, *tag.Value)
 			}
 
 			break

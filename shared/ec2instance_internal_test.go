@@ -113,7 +113,7 @@ func TestVolumesNotDetachedWhenTagValueIsNotTrue(t *testing.T) {
 	mockEC2Service := helper.NewMockEC2Service()
 
 	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance(instanceID,
-		helper.NewDescribeTagsOutputBuilder().DetachVolumesValue(instanceID,"false").WithVolume("/dev/sda", instanceID, "vol-1234567").WithVolume("/dev/sdb", instanceID, "vol-54321").Build())
+		helper.NewDescribeTagsOutputBuilder().DetachVolumesValue(instanceID, "false").WithVolume("/dev/sda", instanceID, "vol-1234567").WithVolume("/dev/sdb", instanceID, "vol-54321").Build())
 
 	var underTest = NewEC2Instance(metadata, mockEC2Service)
 

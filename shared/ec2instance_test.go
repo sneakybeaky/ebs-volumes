@@ -38,4 +38,3 @@ func assertVolumesEqual(t *testing.T, left *shared.AllocatedVolume, right *share
 		t.Errorf("Expected %s but got %s", left.String(), right.String())
 	}
 }
-

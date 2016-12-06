@@ -62,7 +62,9 @@ var doAttach = func(instance *shared.EC2Instance) {
 }
 
 var doDetach = func(instance *shared.EC2Instance) {
-	instance.DetachVolumes()
+	if err := instance.DetachVolumes(); err != nil {
+		log.Error.Fatalf("Unable to detach volumes : %v\n", err)
+	}
 }
 
 func main() {

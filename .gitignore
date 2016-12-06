@@ -28,6 +28,9 @@ _testmain.go
 .idea
 *.iml
 
+.vscode
+ebs-volumes
+
 /.gitignore
 ### Terraform template
 # Compiled files

@@ -17,6 +17,13 @@ type action struct {
 	set    bool
 }
 
+var (
+	version string
+	build   string
+
+	actionFlag action
+)
+
 func (action *action) String() string {
 	return action.action
 }
@@ -39,8 +46,6 @@ func (action *action) Set(value string) error {
 	return fmt.Errorf("Unrecognised action '%s'", action)
 
 }
-
-var actionFlag action
 
 func init() {
 
@@ -69,10 +74,17 @@ var doDetach = func(instance *shared.EC2Instance) {
 
 func main() {
 
+	versionFlag := flag.Bool("v", false, "prints current version and build")
 	flag.Parse()
+
+	if *versionFlag {
+		fmt.Fprintf(os.Stderr, "Version %s Build %s\n", version, build)
+		os.Exit(0)
+	}
 
 	if actionFlag.set == false {
 		flag.Usage()
+		os.Exit(0)
 	}
 
 	sess, err := session.NewSession()

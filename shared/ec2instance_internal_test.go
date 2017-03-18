@@ -26,33 +26,6 @@ func TestAttachAllocatedVolumes(t *testing.T) {
 	checkExpectedVolumesWereAttached(expectedVolumes, attached, t)
 
 }
-func checkExpectedVolumesWereAttached(expectedVolumes []string, attached map[string]bool, t *testing.T) {
-	for _, expectedVolume := range expectedVolumes {
-		if _, attached := attached[expectedVolume]; !attached {
-			t.Errorf("Volume %s should have been attached, but wasn't", expectedVolume)
-		}
-	}
-}
-
-func captureAttachedVolumes(expectedVolumes []string, underTest *EC2Instance) ( map[string]bool) {
-
-	saved := attachVolume
-	defer func() {
-		attachVolume = saved
-	}()
-
-	attachedChannel := make(chan string, len(expectedVolumes))
-	attachVolume = func(volume *AllocatedVolume) {
-		attachedChannel <- volume.VolumeId
-	}
-	underTest.AttachVolumes()
-	close(attachedChannel)
-	attached := make(map[string]bool)
-	for volumeId := range attachedChannel {
-		attached[volumeId] = true
-	}
-	return attached
-}
 
 func TestDetachAllocatedVolumes(t *testing.T) {
 
@@ -68,23 +41,9 @@ func TestDetachAllocatedVolumes(t *testing.T) {
 
 	var underTest = NewEC2Instance(metadata, mockEC2Service)
 
-	saved := detachVolume
-	defer func() {
-		detachVolume = saved
-	}()
+	detached := captureDetachedVolumes(expectedVolumes, underTest)
 
-	detachedVolumes := ""
-	detachVolume = func(volume *AllocatedVolume) {
-		detachedVolumes += fmt.Sprintf("%s:", volume.VolumeId)
-	}
-
-	underTest.DetachVolumes()
-
-	for _, expectedVolume := range expectedVolumes {
-		if attached := strings.Contains(detachedVolumes, expectedVolume); !attached {
-			t.Errorf("Volume %s should have been detached, but wasn't in the detached volumes %v ", expectedVolume, strings.Split(detachedVolumes, ":"))
-		}
-	}
+	checkExpectedVolumesWereDetached(expectedVolumes, detached, t)
 
 }
 
@@ -146,4 +105,60 @@ func TestVolumesNotDetachedWhenTagValueIsNotTrue(t *testing.T) {
 		t.Errorf("No volumes should have been detached, but %s were ", strings.Split(detachedVolumes, ":"))
 	}
 
+}
+
+func checkExpectedVolumesWereAttached(expectedVolumes []string, attached map[string]bool, t *testing.T) {
+	for _, expectedVolume := range expectedVolumes {
+		if _, attached := attached[expectedVolume]; !attached {
+			t.Errorf("Volume %s should have been attached, but wasn't", expectedVolume)
+		}
+	}
+}
+
+func checkExpectedVolumesWereDetached(expectedVolumes []string, detached map[string]bool, t *testing.T) {
+	for _, expectedVolume := range expectedVolumes {
+		if _, detached := detached[expectedVolume]; !detached {
+			t.Errorf("Volume %s should have been detached, but wasn't", expectedVolume)
+		}
+	}
+}
+
+func captureAttachedVolumes(expectedVolumes []string, underTest *EC2Instance) map[string]bool {
+
+	saved := attachVolume
+	defer func() {
+		attachVolume = saved
+	}()
+
+	attachedChannel := make(chan string, len(expectedVolumes))
+	attachVolume = func(volume *AllocatedVolume) {
+		attachedChannel <- volume.VolumeId
+	}
+	underTest.AttachVolumes()
+	close(attachedChannel)
+	attached := make(map[string]bool)
+	for volumeId := range attachedChannel {
+		attached[volumeId] = true
+	}
+	return attached
+}
+
+func captureDetachedVolumes(expectedVolumes []string, underTest *EC2Instance) map[string]bool {
+
+	saved := detachVolume
+	defer func() {
+		detachVolume = saved
+	}()
+
+	detachedChannel := make(chan string, len(expectedVolumes))
+	detachVolume = func(volume *AllocatedVolume) {
+		detachedChannel <- volume.VolumeId
+	}
+	underTest.DetachVolumes()
+	close(detachedChannel)
+	detached := make(map[string]bool)
+	for volumeId := range detachedChannel {
+		detached[volumeId] = true
+	}
+	return detached
 }

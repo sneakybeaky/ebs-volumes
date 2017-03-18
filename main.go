@@ -18,11 +18,10 @@ type action struct {
 }
 
 var (
-	Version   = "N/A"
-	BuildTime = "N/A"
+	Version    = "N/A"
+	BuildTime  = "N/A"
 	actionFlag action
 )
-
 
 func (action *action) String() string {
 	return action.action

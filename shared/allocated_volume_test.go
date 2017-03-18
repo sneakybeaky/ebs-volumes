@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"errors"
+	"io/ioutil"
+
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sneakybeaky/aws-volumes/shared"
 	"github.com/sneakybeaky/aws-volumes/shared/internal/helper"
-	"io/ioutil"
 )
 
 func TestDetachVolumeWhenAttached(t *testing.T) {

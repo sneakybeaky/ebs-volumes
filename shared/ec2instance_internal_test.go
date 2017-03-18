@@ -1,8 +1,6 @@
 package shared
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/sneakybeaky/aws-volumes/shared/internal/helper"
@@ -58,20 +56,10 @@ func TestVolumesNotDetachedWhenTagUnset(t *testing.T) {
 
 	var underTest = NewEC2Instance(metadata, mockEC2Service)
 
-	saved := detachVolume
-	defer func() {
-		detachVolume = saved
-	}()
+	detached := captureDetachedVolumes([]string{}, underTest)
 
-	detachedVolumes := ""
-	detachVolume = func(volume *AllocatedVolume) {
-		detachedVolumes += fmt.Sprintf("%s:", volume.VolumeId)
-	}
-
-	underTest.DetachVolumes()
-
-	if detachedVolumes != "" {
-		t.Errorf("No volumes should have been detached, but %s were ", strings.Split(detachedVolumes, ":"))
+	if len(detached) > 0 {
+		t.Errorf("No volumes should have been detached, but %d were ", len(detached))
 	}
 
 }
@@ -89,20 +77,10 @@ func TestVolumesNotDetachedWhenTagValueIsNotTrue(t *testing.T) {
 
 	var underTest = NewEC2Instance(metadata, mockEC2Service)
 
-	saved := detachVolume
-	defer func() {
-		detachVolume = saved
-	}()
+	detached := captureDetachedVolumes([]string{}, underTest)
 
-	detachedVolumes := ""
-	detachVolume = func(volume *AllocatedVolume) {
-		detachedVolumes += fmt.Sprintf("%s:", volume.VolumeId)
-	}
-
-	underTest.DetachVolumes()
-
-	if detachedVolumes != "" {
-		t.Errorf("No volumes should have been detached, but %s were ", strings.Split(detachedVolumes, ":"))
+	if len(detached) > 0 {
+		t.Errorf("No volumes should have been detached, but %d were ", len(detached))
 	}
 
 }

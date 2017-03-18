@@ -39,3 +39,5 @@ ebs-volumes
 *.tfvars
 coverage.out
 
+.vscode
+

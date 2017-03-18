@@ -18,11 +18,11 @@ type action struct {
 }
 
 var (
-	version string
-	build   string
-
+	Version   = "N/A"
+	BuildTime = "N/A"
 	actionFlag action
 )
+
 
 func (action *action) String() string {
 	return action.action
@@ -78,7 +78,7 @@ func main() {
 	flag.Parse()
 
 	if *versionFlag {
-		fmt.Fprintf(os.Stderr, "Version %s Build %s\n", version, build)
+		fmt.Fprintf(os.Stderr, "Version %s built on %s\n", Version, BuildTime)
 		os.Exit(0)
 	}
 

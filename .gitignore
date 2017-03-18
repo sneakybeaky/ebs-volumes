@@ -39,5 +39,5 @@ ebs-volumes
 *.tfvars
 coverage.out
 
-.vscode
-
+/.GOPATH
+/bin

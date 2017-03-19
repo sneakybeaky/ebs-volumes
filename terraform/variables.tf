@@ -14,21 +14,22 @@ variable "key_name" {
 
 variable "aws_region" {
   description = "AWS region to launch servers."
-  default     = "eu-west-1"
+  default = "eu-west-2"
 }
 
 variable "aws_availability_zone" {
   description = "AWS availability zone to use."
-  default     = "eu-west-1a"
+  default = "eu-west-2a"
 }
 
-# Ubuntu Precise 12.04 LTS (x64)
+# Ubuntu 16.04 LTS (x64) hvm-ssd release 20170307
 variable "aws_amis" {
   type = "map"
   default = {
-    eu-west-1 = "ami-b1cf19c6"
-    us-east-1 = "ami-de7ab6b6"
-    us-west-1 = "ami-3f75767a"
-    us-west-2 = "ami-21f78e11"
+    eu-west-1 = "ami-971238f1"
+    eu-west-2 = "ami-ed908589"
+    us-east-1 = "ami-2757f631"
+    us-west-1 = "ami-44613824"
+    us-west-2 = "ami-ed908589"
   }
 }

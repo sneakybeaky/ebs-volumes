@@ -76,7 +76,7 @@ resource "aws_instance" "web" {
 
   iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
 
-  instance_type = "m1.small"
+  instance_type = "m4.large"
 
   # Lookup the correct AMI based on the region
   # we specified
@@ -99,6 +99,7 @@ resource "aws_instance" "web" {
     foo = "bar"
     "volume_/dev/sdf" = "${aws_ebs_volume.volume1.id}"
     "volume_/dev/sdg" = "${aws_ebs_volume.volume2.id}"
+    "detach_volumes" = "true"
   }
 
 }

@@ -38,6 +38,7 @@ ebs-volumes
 *.tfstate.backup
 *.tfvars
 coverage.out
+.terraform.tfstate.lock.info
 
 /.GOPATH
 /bin

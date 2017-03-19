@@ -17,8 +17,30 @@ variable "aws_region" {
   default = "eu-west-2"
 }
 
-variable "aws_availability_zone" {
-  description = "AWS availability zone to use."
-  default = "eu-west-2a"
+variable "region_number" {
+  type = "map"
+  # Arbitrary mapping of region name to number to use in
+  # a VPC's CIDR prefix.
+  default = {
+    us-east-1      = 1
+    us-west-1      = 2
+    us-west-2      = 3
+    eu-west-1      = 4
+    eu-west-2      = 5
+  }
 }
+
+variable "az_number" {
+  type = "map"
+  # Assign a number to each AZ letter used in our configuration
+  default = {
+    a = 1
+    b = 2
+    c = 3
+    d = 4
+    e = 5
+    f = 6
+  }
+}
+
 

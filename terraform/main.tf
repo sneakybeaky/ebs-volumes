@@ -3,9 +3,17 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
+data "aws_availability_zones" "available" {}
+
+# Retrieve the AZ where we want to create network resources
+# This must be in the region selected on the AWS provider.
+data "aws_availability_zone" "primary" {
+  name = "${data.aws_availability_zones.available.names[0]}"
+}
+
 # Create a VPC to launch our instances into
 resource "aws_vpc" "default" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = "${cidrsubnet("10.0.0.0/12", 4, var.region_number[data.aws_availability_zone.primary.region])}"
 }
 
 # Create an internet gateway to give our subnet access to the outside world
@@ -23,9 +31,9 @@ resource "aws_route" "internet_access" {
 # Create a subnet to launch our instances into
 resource "aws_subnet" "default" {
   vpc_id = "${aws_vpc.default.id}"
-  cidr_block = "10.0.1.0/24"
+  cidr_block = "${cidrsubnet(aws_vpc.default.cidr_block, 4, var.az_number[data.aws_availability_zone.primary.name_suffix])}"
   map_public_ip_on_launch = true
-  availability_zone = "${var.aws_availability_zone}"
+  availability_zone = "${data.aws_availability_zone.primary.name}"
 }
 
 
@@ -90,7 +98,7 @@ data "aws_ami" "server_ami" {
 
 resource "aws_instance" "web" {
 
-  availability_zone = "${var.aws_availability_zone}"
+  availability_zone = "${data.aws_availability_zone.primary.name}"
 
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
@@ -134,12 +142,12 @@ resource "aws_instance" "web" {
 
 resource "aws_ebs_volume" "volume1" {
   size = 1
-  availability_zone = "${var.aws_availability_zone}"
+  availability_zone = "${data.aws_availability_zone.primary.name}"
 }
 
 resource "aws_ebs_volume" "volume2" {
   size = 1
-  availability_zone = "${var.aws_availability_zone}"
+  availability_zone = "${data.aws_availability_zone.primary.name}"
 }
 
 resource "aws_iam_instance_profile" "test_profile" {

@@ -99,7 +99,7 @@ func (volume AllocatedVolume) Detach() error {
 
 func (volume AllocatedVolume) Info(w io.Writer) error {
 
-	if status, err := volume.svc.DescribeVolumes(volume.describeVolumesInputWhenDetached()); err != nil {
+	if status, err := volume.svc.DescribeVolumes(volume.describeVolumesInput()); err != nil {
 
 		return fmt.Errorf("Error getting volume status for Volume (%s), cause: \"%s\"",
 			volume.VolumeId, err.Error())
@@ -113,6 +113,7 @@ func (volume AllocatedVolume) Info(w io.Writer) error {
 	return nil
 }
 
+// describeVolumesInput provides the structure to describe this volume when attached to the designated EC2 instance
 func (volume AllocatedVolume) describeVolumesInputWhenAttached() *ec2.DescribeVolumesInput {
 	return &ec2.DescribeVolumesInput{
 		VolumeIds: []*string{aws.String(volume.VolumeId)},
@@ -129,7 +130,8 @@ func (volume AllocatedVolume) describeVolumesInputWhenAttached() *ec2.DescribeVo
 	}
 }
 
-func (volume AllocatedVolume) describeVolumesInputWhenDetached() *ec2.DescribeVolumesInput {
+// describeVolumesInput provides the structure to describe this volume
+func (volume AllocatedVolume) describeVolumesInput() *ec2.DescribeVolumesInput {
 	return &ec2.DescribeVolumesInput{
 		VolumeIds: []*string{aws.String(volume.VolumeId)},
 	}
@@ -138,7 +140,7 @@ func (volume AllocatedVolume) describeVolumesInputWhenDetached() *ec2.DescribeVo
 func (volume AllocatedVolume) waitUntilAvailable() error {
 
 	log.Debug.Printf("Waiting for volume (%s) to become available\n", volume.VolumeId)
-	return volume.svc.WaitUntilVolumeAvailable(volume.describeVolumesInputWhenDetached())
+	return volume.svc.WaitUntilVolumeAvailable(volume.describeVolumesInput())
 }
 
 // waitUntilVolumeAttached uses the Amazon EC2 API operation

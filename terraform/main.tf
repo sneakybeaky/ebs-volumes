@@ -61,6 +61,33 @@ resource "aws_key_pair" "auth" {
   public_key = "${file(var.public_key_path)}"
 }
 
+# Ubuntu 16.04 LTS (x64) hvm-ssd
+data "aws_ami" "server_ami" {
+  most_recent      = true
+
+  filter {
+    name = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name = "block-device-mapping.volume-type"
+    values = ["gp2"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name   = "name"
+    values = ["*ubuntu-xenial-16.04-amd64-server-*"]
+  }
+
+  owners     = ["099720109477"]
+}
+
 resource "aws_instance" "web" {
 
   availability_zone = "${var.aws_availability_zone}"
@@ -80,7 +107,8 @@ resource "aws_instance" "web" {
 
   # Lookup the correct AMI based on the region
   # we specified
-  ami = "${lookup(var.aws_amis, var.aws_region)}"
+  #ami = "${lookup(var.aws_amis, var.aws_region)}"
+  ami = "${data.aws_ami.server_ami.id}"
 
   # The name of our SSH keypair we created above.
   key_name = "${aws_key_pair.auth.id}"

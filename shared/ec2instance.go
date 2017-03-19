@@ -135,8 +135,13 @@ var detachVolume = func(volume *AllocatedVolume) {
 
 var showVolumeInfo = func(volume *AllocatedVolume) {
 	buf := new(bytes.Buffer)
-	volume.Info(buf)
+
+	if err := volume.Info(buf); err != nil {
+		log.Error.Printf("Unable to get info for volume : %s\n", err)
+		return
+	}
 	os.Stdout.WriteString(buf.String())
+
 }
 
 func (e EC2Instance) applyToVolumes(action func(volume *AllocatedVolume)) {

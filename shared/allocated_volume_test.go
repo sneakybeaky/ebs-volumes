@@ -13,41 +13,6 @@ import (
 	"github.com/sneakybeaky/aws-volumes/shared/internal/helper"
 )
 
-func TestDetachVolumeWhenAttached(t *testing.T) {
-
-	expectedVolumeID := "vol-54321"
-
-	detachVolumeFuncCalled := false
-	waitUntilVolumeAvailableFuncCalled := false
-
-	mockEC2Service := &helper.MockEC2Service{
-		DetachVolumeFunc: func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
-			detachVolumeFuncCalled = true
-			return helper.DetachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
-		},
-		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
-			waitUntilVolumeAvailableFuncCalled = true
-			return helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
-		},
-	}
-
-	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
-
-	err := underTest.Detach()
-
-	if err != nil {
-		t.Errorf("Detaching the volume shouldn't have failed, but I got %v", err)
-	}
-
-	if !detachVolumeFuncCalled {
-		t.Error("The AWS API DetachVolume function wasn't called ")
-	}
-
-	if !waitUntilVolumeAvailableFuncCalled {
-		t.Error("The AWS API WaitUntilVolumeAvailable function wasn't called ")
-	}
-}
-
 func TestAttachVolumeWhenDetached(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
@@ -127,47 +92,6 @@ func TestInfo(t *testing.T) {
 	}
 	if !strings.Contains(infoString, expectedDeviceName) {
 		t.Errorf("Info message should have contained device name '%s', but message was : '%s'", expectedDeviceName, infoString)
-	}
-
-}
-
-func TestDetachVolumeErrorCallingDetachVolumeAPI(t *testing.T) {
-
-	expectedVolumeID := "vol-54321"
-
-	mockEC2Service := &helper.MockEC2Service{
-		DetachVolumeFunc: func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
-			return nil, errors.New("whoops")
-		},
-	}
-
-	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
-
-	err := underTest.Detach()
-
-	if err == nil {
-		t.Error("Detaching the volume should have failed")
-	}
-
-}
-
-func TestDetachVolumeErrorCallingWaitUntilVolumeAvailableAPI(t *testing.T) {
-
-	expectedVolumeID := "vol-54321"
-
-	mockEC2Service := &helper.MockEC2Service{
-		DetachVolumeFunc: helper.DetachVolumeForVolumeIDSuccess(expectedVolumeID),
-		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
-			return errors.New("whoops")
-		},
-	}
-
-	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
-
-	err := underTest.Detach()
-
-	if err == nil {
-		t.Error("Detaching the volume should have failed")
 	}
 
 }
@@ -252,7 +176,7 @@ func TestInfoErrorCallingDescribeVolumesAPI(t *testing.T) {
 
 }
 
-func TestAttachedWhenDetached(t *testing.T) {
+func TestAttachedStatusWhenDetached(t *testing.T) {
 	expectedVolumeID := "vol-54321"
 
 	mockEC2Service := &helper.MockEC2Service{
@@ -264,14 +188,14 @@ func TestAttachedWhenDetached(t *testing.T) {
 	}
 
 	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
-	attached,_ := underTest.Attached()
+	attached, _ := underTest.Attached()
 
 	if attached != false {
 		t.Error("The volume is not attached")
 	}
 }
 
-func TestAttachedWhenAttached(t *testing.T) {
+func TestAttachedStatusWhenAttached(t *testing.T) {
 	expectedVolumeID := "vol-54321"
 
 	volume := helper.NewVolumeBuilder().Build()
@@ -285,7 +209,7 @@ func TestAttachedWhenAttached(t *testing.T) {
 	}
 
 	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
-	attached,_ := underTest.Attached()
+	attached, _ := underTest.Attached()
 
 	if attached != true {
 		t.Error("The volume is attached")

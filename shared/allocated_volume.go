@@ -32,6 +32,17 @@ func (volume AllocatedVolume) Attach() error {
 
 	log.Info.Printf("Attaching Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
 
+	attached, err := volume.Attached()
+	if err != nil {
+		return fmt.Errorf("Error Attaching volume (%s) to instance (%s), cause : \"%s\"",
+			volume.VolumeId, volume.InstanceId, err.Error())
+	}
+
+	if attached {
+		log.Debug.Printf("Volume (%s) already attached - skipping\n", volume.VolumeId)
+		return nil
+	}
+
 	if err := volume.waitUntilAvailable(); err != nil {
 		return fmt.Errorf("Error waiting for Volume (%s) to become available, error: %s",
 			volume.VolumeId, err)
@@ -50,7 +61,7 @@ func (volume AllocatedVolume) Attach() error {
 
 	}
 
-	err := volume.waitUntilAttached()
+	err = volume.waitUntilAttached()
 
 	if err != nil {
 		return fmt.Errorf("Error waiting for Volume (%s) to attach at (%s), error: %s",

@@ -48,18 +48,16 @@ func (volume AllocatedVolume) Attach() error {
 		return fmt.Errorf("Error attaching volume (%s) to instance (%s), cause: \"%s\"",
 			volume.VolumeId, volume.InstanceId, err.Error())
 
-	} else {
-
-		err := volume.waitUntilAttached()
-
-		if err != nil {
-			return fmt.Errorf("Error waiting for Volume (%s) to attach at (%s), error: %s",
-				volume.VolumeId, volume.DeviceName, err)
-		}
-
-		log.Info.Printf("Attached Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
-
 	}
+
+	err := volume.waitUntilAttached()
+
+	if err != nil {
+		return fmt.Errorf("Error waiting for Volume (%s) to attach at (%s), error: %s",
+			volume.VolumeId, volume.DeviceName, err)
+	}
+
+	log.Info.Printf("Attached Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
 
 	return nil
 
@@ -81,34 +79,52 @@ func (volume AllocatedVolume) Detach() error {
 		return fmt.Errorf("Error Detaching volume (%s) to instance (%s), cause : \"%s\"",
 			volume.VolumeId, volume.InstanceId, err.Error())
 
-	} else {
-
-		err := volume.waitUntilAvailable()
-
-		if err != nil {
-			return fmt.Errorf("Error waiting for Volume (%s) to detach at (%s), cause: %s",
-				volume.VolumeId, volume.DeviceName, err.Error())
-		} else {
-			log.Info.Printf("Detached Volume (%s) from (%s)\n", volume.VolumeId, volume.DeviceName)
-		}
 	}
+
+	err := volume.waitUntilAvailable()
+
+	if err != nil {
+		return fmt.Errorf("Error waiting for Volume (%s) to detach at (%s), cause: %s",
+			volume.VolumeId, volume.DeviceName, err.Error())
+	}
+
+	log.Info.Printf("Detached Volume (%s) from (%s)\n", volume.VolumeId, volume.DeviceName)
 
 	return nil
 
 }
 
+// Attached returns true if the volume is attached to the designated instance, false otherwise.
+func (volume AllocatedVolume) Attached() (bool, error) {
+
+	status, err := volume.svc.DescribeVolumes(volume.describeVolumesInputWhenAttached())
+
+	if err != nil {
+
+		return false, fmt.Errorf("Error getting volume status for Volume (%s), cause: \"%s\"",
+			volume.VolumeId, err.Error())
+
+	}
+
+	return len(status.Volumes) > 0, nil
+
+}
+
+// Info writes information about this volume 
 func (volume AllocatedVolume) Info(w io.Writer) error {
 
-	if status, err := volume.svc.DescribeVolumes(volume.describeVolumesInput()); err != nil {
+	status, err := volume.svc.DescribeVolumes(volume.describeVolumesInput())
+
+	if err != nil {
 
 		return fmt.Errorf("Error getting volume status for Volume (%s), cause: \"%s\"",
 			volume.VolumeId, err.Error())
 
-	} else {
-		volumeStatus := status.Volumes[0]
-		fmt.Fprintf(w, "Volume ID (%s), Device Name (%s), Status is %s\n",
-			volume.VolumeId, volume.DeviceName, *volumeStatus.State)
 	}
+
+	volumeStatus := status.Volumes[0]
+	fmt.Fprintf(w, "Volume ID (%s), Device Name (%s), Status is %s\n",
+		volume.VolumeId, volume.DeviceName, *volumeStatus.State)
 
 	return nil
 }

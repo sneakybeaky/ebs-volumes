@@ -114,7 +114,7 @@ func TestInfo(t *testing.T) {
 	err := underTest.Info(buf)
 
 	if err != nil {
-		t.Errorf("Attaching the volume shouldn't have failed, but I got %v", err)
+		t.Errorf("Getting info shouldn't have failed, but I got %v", err)
 	}
 
 	infoString := buf.String()
@@ -250,4 +250,44 @@ func TestInfoErrorCallingDescribeVolumesAPI(t *testing.T) {
 		t.Error("Getting the volume info should have returned an error")
 	}
 
+}
+
+func TestAttachedWhenDetached(t *testing.T) {
+	expectedVolumeID := "vol-54321"
+
+	mockEC2Service := &helper.MockEC2Service{
+		DescribeVolumesFunc: helper.DescribeVolumeForID(
+			expectedVolumeID,
+			&ec2.DescribeVolumesOutput{
+				Volumes: []*ec2.Volume{},
+			}),
+	}
+
+	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
+	attached,_ := underTest.Attached()
+
+	if attached != false {
+		t.Error("The volume is not attached")
+	}
+}
+
+func TestAttachedWhenAttached(t *testing.T) {
+	expectedVolumeID := "vol-54321"
+
+	volume := helper.NewVolumeBuilder().Build()
+
+	mockEC2Service := &helper.MockEC2Service{
+		DescribeVolumesFunc: helper.DescribeVolumeForID(
+			expectedVolumeID,
+			&ec2.DescribeVolumesOutput{
+				Volumes: []*ec2.Volume{volume},
+			}),
+	}
+
+	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
+	attached,_ := underTest.Attached()
+
+	if attached != true {
+		t.Error("The volume is attached")
+	}
 }

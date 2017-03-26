@@ -3,8 +3,8 @@ package shared_test
 import (
 	"testing"
 
-	"github.com/sneakybeaky/aws-volumes/shared"
-	"github.com/sneakybeaky/aws-volumes/shared/internal/helper"
+	"github.com/sneakybeaky/ebs-volumes/shared"
+	"github.com/sneakybeaky/ebs-volumes/shared/internal/helper"
 )
 
 func TestFindAllocatedVolumes(t *testing.T) {

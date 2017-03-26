@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/sneakybeaky/aws-volumes/shared/iface"
-	"github.com/sneakybeaky/aws-volumes/shared/log"
+	"github.com/sneakybeaky/ebs-volumes/shared/iface"
+	"github.com/sneakybeaky/ebs-volumes/shared/log"
 )
 
 // VolumeTagPrefix prefixes the name of a tag describing an allocated volume

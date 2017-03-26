@@ -3,7 +3,7 @@ package shared
 import (
 	"testing"
 
-	"github.com/sneakybeaky/aws-volumes/shared/internal/helper"
+	"github.com/sneakybeaky/ebs-volumes/shared/internal/helper"
 )
 
 func TestAttachAllocatedVolumes(t *testing.T) {

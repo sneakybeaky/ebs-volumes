@@ -9,8 +9,8 @@ import (
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/sneakybeaky/aws-volumes/shared"
-	"github.com/sneakybeaky/aws-volumes/shared/internal/helper"
+	"github.com/sneakybeaky/ebs-volumes/shared"
+	"github.com/sneakybeaky/ebs-volumes/shared/internal/helper"
 )
 
 func TestInfo(t *testing.T) {

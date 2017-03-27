@@ -229,7 +229,6 @@ func TestAttachVolumeWhenDetached(t *testing.T) {
 	}
 }
 
-
 func TestAttachVolumeErrorCallingWaitUntilVolumeAvailableAPI(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
@@ -255,7 +254,6 @@ func TestAttachVolumeErrorCallingWaitUntilVolumeAvailableAPI(t *testing.T) {
 		t.Error("Attaching the volume should have failed")
 	}
 }
-
 
 func TestAttachVolumeErrorCallingAttachVolumeAPI(t *testing.T) {
 
@@ -284,7 +282,6 @@ func TestAttachVolumeErrorCallingAttachVolumeAPI(t *testing.T) {
 	}
 }
 
-
 func TestAttachVolumeErrorCallingWaitUntilVolumeInUseAPI(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
@@ -312,7 +309,6 @@ func TestAttachVolumeErrorCallingWaitUntilVolumeInUseAPI(t *testing.T) {
 		t.Error("Attaching the volume should have failed")
 	}
 }
-
 
 func setVolumeAttached() {
 

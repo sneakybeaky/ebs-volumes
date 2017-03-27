@@ -93,12 +93,6 @@
 			"revisionTime": "2016-11-01T23:30:21Z"
 		},
 		{
-			"checksumSHA1": "MIp5H1niMhCZFAwYsjJx9NxmHIc=",
-			"path": "github.com/aws/aws-sdk-go/awstesting/unit",
-			"revision": "967a4b67114c61521c4b514d7c9a2feb869918e9",
-			"revisionTime": "2016-11-01T23:30:21Z"
-		},
-		{
 			"checksumSHA1": "Esab5F8KswqkTdB4TtjSvZgs56k=",
 			"path": "github.com/aws/aws-sdk-go/private/endpoints",
 			"revision": "967a4b67114c61521c4b514d7c9a2feb869918e9",
@@ -165,12 +159,6 @@
 			"revisionTime": "2016-11-01T23:30:21Z"
 		},
 		{
-			"checksumSHA1": "5rPfda8jFccr3A6heL+JAmi9K9g=",
-			"path": "github.com/davecgh/go-spew/spew",
-			"revision": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d",
-			"revisionTime": "2015-11-05T21:09:06Z"
-		},
-		{
 			"checksumSHA1": "FCeEm2BWZV/n4oTy+SGd/k0Ab5c=",
 			"origin": "github.com/aws/aws-sdk-go/vendor/github.com/go-ini/ini",
 			"path": "github.com/go-ini/ini",
@@ -185,41 +173,37 @@
 			"revisionTime": "2016-11-01T23:30:21Z"
 		},
 		{
-			"checksumSHA1": "u62GoEI9HBTtKT7JoTI+JxRPN/s=",
-			"path": "github.com/pmezard/go-difflib/difflib",
-			"revision": "e8554b8641db39598be7f6342874b958f12ae1d4",
-			"revisionTime": "2015-12-07T18:24:34Z"
+			"checksumSHA1": "lU+gVOtSFnBKx11uhPL8b9v0uTE=",
+			"path": "github.com/spf13/cobra",
+			"revision": "7be4beda01ec05d0b93d80b3facd2b6f44080d94",
+			"revisionTime": "2017-03-14T17:12:53Z"
 		},
 		{
-			"checksumSHA1": "5XAzjZrdlLh1mgd7xEvoK6LeLCA=",
-			"path": "github.com/stretchr/testify/assert",
-			"revision": "e3a8ff8ce36581f87a15341206f205b1da467059",
-			"revisionTime": "2015-12-08T00:24:04Z"
+			"checksumSHA1": "PT9AJhtDsUKEwKqYNU8szWOfXSg=",
+			"path": "github.com/spf13/pflag",
+			"revision": "d90f37a48761fe767528f31db1955e4f795d652f",
+			"revisionTime": "2017-03-25T19:48:22Z"
 		},
 		{
 			"checksumSHA1": "1zpt0fHadgwtjKfBJA0I3YiffYs=",
-			"origin": "github.com/sneakybeaky/ebs-volumes/vendor/golang.org/x/tools/cmd/goimports",
 			"path": "golang.org/x/tools/cmd/goimports",
 			"revision": "8b84dae17391c154ca50b0162662aa1fc9ff84c2",
 			"revisionTime": "2016-11-15T21:43:08Z"
 		},
 		{
 			"checksumSHA1": "O5eYI3n1WdaC30AxQjETe3dAQHU=",
-			"origin": "github.com/sneakybeaky/ebs-volumes/vendor/golang.org/x/tools/cover",
 			"path": "golang.org/x/tools/cover",
 			"revision": "8b84dae17391c154ca50b0162662aa1fc9ff84c2",
 			"revisionTime": "2016-11-15T21:43:08Z"
 		},
 		{
 			"checksumSHA1": "SoOfjYDw7R1N1P2aHxIjXYFmWUo=",
-			"origin": "github.com/sneakybeaky/ebs-volumes/vendor/golang.org/x/tools/go/ast/astutil",
 			"path": "golang.org/x/tools/go/ast/astutil",
 			"revision": "8b84dae17391c154ca50b0162662aa1fc9ff84c2",
 			"revisionTime": "2016-11-15T21:43:08Z"
 		},
 		{
 			"checksumSHA1": "+mjMyJPLBPu7vIHaXkDuvqcDk0s=",
-			"origin": "github.com/sneakybeaky/ebs-volumes/vendor/golang.org/x/tools/imports",
 			"path": "golang.org/x/tools/imports",
 			"revision": "8b84dae17391c154ca50b0162662aa1fc9ff84c2",
 			"revisionTime": "2016-11-15T21:43:08Z"

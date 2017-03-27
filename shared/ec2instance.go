@@ -7,7 +7,10 @@ import (
 	"strings"
 	"sync"
 
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/sneakybeaky/ebs-volumes/shared/iface"
@@ -19,6 +22,28 @@ const VolumeTagPrefix = "volume_"
 
 // DetachVolumesTag when set to a true value signals volumes can be detached
 const DetachVolumesTag = "detach_volumes"
+
+// GetInstance returns a representation for the current EC2 instance
+func GetInstance() (*EC2Instance, error) {
+
+	sess, err := session.NewSession()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create AWS session : %v", err)
+	}
+
+	metadata := NewEC2InstanceMetadata(sess)
+
+	region, err := metadata.Region()
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get AWS region : %v", err)
+	}
+
+	sess.Config.Region = &region
+
+	return NewEC2Instance(metadata, ec2.New(sess)), nil
+
+}
 
 // EC2Instance provides metadata about an EC2 instance.
 type EC2Instance struct {

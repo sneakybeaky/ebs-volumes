@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sneakybeaky/ebs-volumes/shared"
 	"github.com/spf13/cobra"
 )
@@ -20,22 +18,11 @@ var infoCmd = &cobra.Command{
 
 func printInfo() error {
 
-	sess, err := session.NewSession()
-	if err != nil {
-		return fmt.Errorf("Failed to create AWS session : %v", err)
-	}
-
-	metadata := shared.NewEC2InstanceMetadata(sess)
-
-	region, err := metadata.Region()
+	instance, err := shared.GetInstance()
 
 	if err != nil {
-		return fmt.Errorf("Failed to get AWS region : %v", err)
+		return fmt.Errorf("Unable to get EC2 instance : %v", err)
 	}
-
-	sess.Config.Region = &region
-
-	instance := shared.NewEC2Instance(metadata, ec2.New(sess))
 
 	instance.ShowVolumesInfo()
 

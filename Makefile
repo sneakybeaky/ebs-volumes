@@ -12,7 +12,7 @@ IGNORED_PACKAGES := /vendor/
 all: build
 
 .PHONY: build
-build: .GOPATH/.ok
+build: .GOPATH/.ok ## Build
 	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)
 
 ### Code not in the repository root? Another binary? Add to the path like this.
@@ -24,12 +24,14 @@ build: .GOPATH/.ok
 
 ##### =====> Utility targets <===== #####
 
-.PHONY: clean test list cover format
+.DEFAULT_GOAL := help
 
-clean:
+.PHONY: clean test list cover format help
+
+clean: ## Cleans up
 	$Q rm -rf bin .GOPATH
 
-test: .GOPATH/.ok
+test: .GOPATH/.ok ## runs `go vet` and `go test -race` on all packages
 	$Q go test $(if $V,-v) -i -race $(allpackages) # install -race libs to speed up next run
 ifndef CI
 	$Q go vet $(allpackages)
@@ -44,7 +46,7 @@ endif
 list: .GOPATH/.ok
 	@echo $(allpackages)
 
-cover: bin/gocovmerge .GOPATH/.ok
+cover: bin/gocovmerge .GOPATH/.ok ## aggregates the coverage of all tests over all packages
 	@echo "NOTE: make cover does not exit 1 on failure, don't use it to check for tests success!"
 	$Q rm -f .GOPATH/cover/*.out .GOPATH/cover/all.merged
 	$(if $V,@echo "-- go test -coverpkg=./... -coverprofile=.GOPATH/cover/... ./...")
@@ -64,9 +66,14 @@ endif
 	@echo ""
 	$Q go tool cover -func .GOPATH/cover/all.merged
 
-format: bin/goimports .GOPATH/.ok
+format: bin/goimports .GOPATH/.ok ## runs `goimports` on all non-ignored packages
 	$Q find .GOPATH/src/$(IMPORT_PATH)/ -iname \*.go | grep -v \
 	    -e "^$$" $(addprefix -e ,$(IGNORED_PACKAGES)) | xargs ./bin/goimports -w
+
+# https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
 
 ##### =====> Internals <===== #####
 

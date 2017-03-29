@@ -141,6 +141,33 @@ func TestErrorReturnedWhenAttachVolumeErrors(t *testing.T) {
 
 }
 
+func TestErrorReturnedWhenInfoErrors(t *testing.T) {
+	instanceID := "id-98765"
+	metadata := helper.NewMockMetadata(instanceID, "erewhon")
+
+	mockEC2Service := helper.NewMockEC2Service()
+
+	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance(instanceID,
+		helper.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", instanceID, "vol-1234567").Build())
+
+	var underTest = NewEC2Instance(metadata, mockEC2Service)
+
+	saved := showVolumeInfo
+	defer func() {
+		showVolumeInfo = saved
+	}()
+
+	showVolumeInfo = func(volume *AllocatedVolume) error {
+		return errors.New("Couldn't attach")
+	}
+	error := underTest.ShowVolumesInfo()
+
+	if error == nil {
+		t.Error("Error should have been returned")
+	}
+
+}
+
 func checkExpectedVolumesWereAttached(expectedVolumes []string, attached map[string]bool, t *testing.T) {
 	for _, expectedVolume := range expectedVolumes {
 		if _, attached := attached[expectedVolume]; !attached {

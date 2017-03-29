@@ -145,8 +145,8 @@ func (e EC2Instance) AttachVolumes() error {
 	return e.applyToVolumes(attachVolume)
 }
 
-func (e EC2Instance) ShowVolumesInfo() {
-	e.applyToVolumes(showVolumeInfo)
+func (e EC2Instance) ShowVolumesInfo() error {
+	return e.applyToVolumes(showVolumeInfo)
 }
 
 var attachVolume = func(volume *AllocatedVolume) error {

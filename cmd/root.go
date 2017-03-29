@@ -33,6 +33,8 @@ func Execute() {
 
 	RootCmd.AddCommand(versionCmd)
 	RootCmd.AddCommand(infoCmd)
+	RootCmd.AddCommand(attachCmd)
+	RootCmd.AddCommand(detachCmd)
 
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)

@@ -9,6 +9,8 @@ import (
 
 	"fmt"
 
+	"errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -123,7 +125,10 @@ func (e EC2Instance) DetachVolumes() error {
 			detachVolumes, _ := strconv.ParseBool(*tag.Value)
 
 			if detachVolumes {
-				e.applyToVolumes(detachVolume)
+				err := e.applyToVolumes(detachVolume)
+				if err != nil {
+					return err
+				}
 			} else {
 				log.Info.Printf("Tag '%s' value is '%s' - not detaching volumes", DetachVolumesTag, *tag.Value)
 			}
@@ -136,59 +141,75 @@ func (e EC2Instance) DetachVolumes() error {
 	return nil
 }
 
-func (e EC2Instance) AttachVolumes() {
-	e.applyToVolumes(attachVolume)
+func (e EC2Instance) AttachVolumes() error {
+	return e.applyToVolumes(attachVolume)
 }
 
 func (e EC2Instance) ShowVolumesInfo() {
 	e.applyToVolumes(showVolumeInfo)
 }
 
-var attachVolume = func(volume *AllocatedVolume) {
+var attachVolume = func(volume *AllocatedVolume) error {
 
 	if err := volume.Attach(); err != nil {
 		log.Error.Printf("Unable to attach volume : %s\n", err)
 	}
+
+	return nil
 }
 
-var detachVolume = func(volume *AllocatedVolume) {
+var detachVolume = func(volume *AllocatedVolume) error {
 
 	if err := volume.Detach(); err != nil {
-		log.Error.Printf("Unable to detach volume : %s\n", err)
+		return fmt.Errorf("Unable to detach volume : %v\n", err)
 	}
+	return nil
 }
 
-var showVolumeInfo = func(volume *AllocatedVolume) {
+var showVolumeInfo = func(volume *AllocatedVolume) error {
 	buf := new(bytes.Buffer)
 
 	if err := volume.Info(buf); err != nil {
 		log.Error.Printf("Unable to get info for volume : %s\n", err)
-		return
+		return nil
 	}
 	os.Stdout.WriteString(buf.String())
 
+	return nil
 }
 
-func (e EC2Instance) applyToVolumes(action func(volume *AllocatedVolume)) {
+func (e EC2Instance) applyToVolumes(action func(volume *AllocatedVolume) error) error {
 	if volumes, err := e.AllocatedVolumes(); err != nil {
-		log.Error.Printf("Unable to find allocated volumes : %s", err)
+		return fmt.Errorf("Unable to find allocated volumes : %v", err)
 	} else {
 
 		var wg sync.WaitGroup
 
+		failed := false
+
 		for _, volume := range volumes {
 
 			wg.Add(1)
-			go func(action func(volume *AllocatedVolume), volume *AllocatedVolume) {
+			go func(action func(volume *AllocatedVolume) error, volume *AllocatedVolume) {
 
 				defer wg.Done()
-				action(volume)
+				err := action(volume)
+
+				if err != nil {
+					log.Error.Println(err)
+					failed = true
+				}
 
 			}(action, volume)
 
 		}
 
 		wg.Wait()
+
+		if failed {
+			return errors.New("Failed for some volumes")
+		}
 	}
 
+	return nil
 }

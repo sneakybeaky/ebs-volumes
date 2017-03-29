@@ -3,6 +3,8 @@ package shared
 import (
 	"testing"
 
+	"errors"
+
 	"github.com/sneakybeaky/ebs-volumes/shared/internal/helper"
 )
 
@@ -85,6 +87,60 @@ func TestVolumesNotDetachedWhenTagValueIsNotTrue(t *testing.T) {
 
 }
 
+func TestErrorReturnedWhenDetachVolumeErrors(t *testing.T) {
+	instanceID := "id-98765"
+	metadata := helper.NewMockMetadata(instanceID, "erewhon")
+
+	mockEC2Service := helper.NewMockEC2Service()
+
+	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance(instanceID,
+		helper.NewDescribeTagsOutputBuilder().DetachVolumes(instanceID).WithVolume("/dev/sda", instanceID, "vol-1234567").Build())
+
+	var underTest = NewEC2Instance(metadata, mockEC2Service)
+
+	saved := detachVolume
+	defer func() {
+		detachVolume = saved
+	}()
+
+	detachVolume = func(volume *AllocatedVolume) error {
+		return errors.New("Couldn't detach")
+	}
+	error := underTest.DetachVolumes()
+
+	if error == nil {
+		t.Error("Error should have been returned")
+	}
+
+}
+
+func TestErrorReturnedWhenAttachVolumeErrors(t *testing.T) {
+	instanceID := "id-98765"
+	metadata := helper.NewMockMetadata(instanceID, "erewhon")
+
+	mockEC2Service := helper.NewMockEC2Service()
+
+	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance(instanceID,
+		helper.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", instanceID, "vol-1234567").Build())
+
+	var underTest = NewEC2Instance(metadata, mockEC2Service)
+
+	saved := attachVolume
+	defer func() {
+		attachVolume = saved
+	}()
+
+	attachVolume = func(volume *AllocatedVolume) error {
+		return errors.New("Couldn't attach")
+	}
+	error := underTest.AttachVolumes()
+
+	if error == nil {
+		t.Error("Error should have been returned")
+	}
+
+}
+
 func checkExpectedVolumesWereAttached(expectedVolumes []string, attached map[string]bool, t *testing.T) {
 	for _, expectedVolume := range expectedVolumes {
 		if _, attached := attached[expectedVolume]; !attached {
@@ -109,8 +165,9 @@ func captureAttachedVolumes(expectedVolumes []string, underTest *EC2Instance) ma
 	}()
 
 	attachedChannel := make(chan string, len(expectedVolumes))
-	attachVolume = func(volume *AllocatedVolume) {
+	attachVolume = func(volume *AllocatedVolume) error {
 		attachedChannel <- volume.VolumeId
+		return nil
 	}
 	underTest.AttachVolumes()
 	close(attachedChannel)
@@ -129,8 +186,9 @@ func captureDetachedVolumes(expectedVolumes []string, underTest *EC2Instance) ma
 	}()
 
 	detachedChannel := make(chan string, len(expectedVolumes))
-	detachVolume = func(volume *AllocatedVolume) {
+	detachVolume = func(volume *AllocatedVolume) error {
 		detachedChannel <- volume.VolumeId
+		return nil
 	}
 	underTest.DetachVolumes()
 	close(detachedChannel)

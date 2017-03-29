@@ -24,7 +24,5 @@ func attach() error {
 		return fmt.Errorf("Unable to get EC2 instance : %v", err)
 	}
 
-	instance.AttachVolumes()
-
-	return nil
+	return instance.AttachVolumes()
 }

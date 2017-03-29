@@ -24,7 +24,5 @@ func detach() error {
 		return fmt.Errorf("Unable to get EC2 instance : %v", err)
 	}
 
-	instance.DetachVolumes()
-
-	return nil
+	return instance.DetachVolumes()
 }

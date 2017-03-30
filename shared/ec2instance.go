@@ -2,14 +2,12 @@ package shared
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
-
-	"fmt"
-
-	"errors"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -111,26 +109,24 @@ func (e EC2Instance) AllocatedVolumes() ([]*AllocatedVolume, error) {
 	return allocated, nil
 }
 
-func (e EC2Instance) DetachVolumes() error {
-
+//shouldDetachVolumes returns true if volumes should be detached, false otherwise
+func (e EC2Instance) shouldDetachVolumes() (bool, error) {
 	tags, err := e.Tags()
 
 	if err != nil {
-		return err
+		return false, err
 	}
+
+	shouldDetach := false
 
 	for _, tag := range tags {
 		if *tag.Key == DetachVolumesTag {
 
-			detachVolumes, _ := strconv.ParseBool(*tag.Value)
+			shouldDetach, _ = strconv.ParseBool(*tag.Value)
 
-			if detachVolumes {
-				err := e.applyToVolumes(detachVolume)
-				if err != nil {
-					return err
-				}
-			} else {
-				log.Info.Printf("Tag '%s' value is '%s' - not detaching volumes", DetachVolumesTag, *tag.Value)
+			if !shouldDetach {
+
+				log.Debug.Printf("Tag '%s' value is '%s' - not detaching volumes\n", DetachVolumesTag, *tag.Value)
 			}
 
 			break
@@ -138,7 +134,24 @@ func (e EC2Instance) DetachVolumes() error {
 		}
 	}
 
-	return nil
+	return shouldDetach, nil
+
+}
+
+func (e EC2Instance) DetachVolumes() error {
+
+	detachVolumes, err := e.shouldDetachVolumes()
+
+	if err != nil {
+		return err
+	}
+
+	if !detachVolumes {
+		return nil
+	}
+
+	return e.applyToVolumes(detachVolume)
+
 }
 
 func (e EC2Instance) AttachVolumes() error {

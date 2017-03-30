@@ -24,7 +24,6 @@ func printInfo() error {
 		return fmt.Errorf("Unable to get EC2 instance : %v", err)
 	}
 
-	instance.ShowVolumesInfo()
+	return instance.ShowVolumesInfo()
 
-	return nil
 }

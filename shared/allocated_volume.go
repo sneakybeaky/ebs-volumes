@@ -81,7 +81,7 @@ func (volume AllocatedVolume) Detach() error {
 
 	attached, err := volume.Attached()
 	if err != nil {
-		return fmt.Errorf("Error Detaching volume (%s) to instance (%s), cause : \"%s\"",
+		return fmt.Errorf("Error Detaching volume (%s) from instance (%s), cause : \"%s\"",
 			volume.VolumeId, volume.InstanceId, err.Error())
 	}
 

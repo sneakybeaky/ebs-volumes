@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sneakybeaky/ebs-volumes/shared/log"
 	"github.com/spf13/cobra"
 )
 
@@ -25,6 +26,11 @@ For example,
 To signal that volumes should be detached set the following tag
 
 	detach_volumes=true`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if verbose {
+			log.SetVerbose()
+		}
+	},
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
@@ -49,5 +55,4 @@ func init() {
 	// will be global for your application.
 
 	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
-
 }

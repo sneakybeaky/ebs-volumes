@@ -7,8 +7,11 @@ import (
 )
 
 var (
-	Trace = log.New(ioutil.Discard, "DEBUG ", log.LstdFlags)
-	Debug = log.New(os.Stdout, "DEBUG ", log.LstdFlags)
-	Info  = log.New(os.Stdout, "INFO ", log.LstdFlags)
-	Error = log.New(os.Stdout, "ERROR ", log.LstdFlags)
+	Debug = log.New(ioutil.Discard, "", 0)
+	Info  = log.New(os.Stdout, "", 0)
+	Error = log.New(os.Stdout, "", 0)
 )
+
+func SetVerbose() {
+	Debug.SetOutput(os.Stdout)
+}

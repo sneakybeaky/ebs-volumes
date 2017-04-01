@@ -158,11 +158,11 @@ func (volume AllocatedVolume) describeVolumesInputWhenAttached() *ec2.DescribeVo
 	return &ec2.DescribeVolumesInput{
 		VolumeIds: []*string{aws.String(volume.VolumeId)},
 		Filters: []*ec2.Filter{
-			&ec2.Filter{
+			{
 				Name:   aws.String("attachment.instance-id"),
 				Values: []*string{aws.String(volume.InstanceId)},
 			},
-			&ec2.Filter{
+			{
 				Name:   aws.String("attachment.status"),
 				Values: []*string{aws.String(ec2.AttachmentStatusAttached)},
 			},

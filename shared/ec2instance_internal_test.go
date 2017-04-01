@@ -193,14 +193,14 @@ func captureAttachedVolumes(expectedVolumes []string, underTest *EC2Instance) ma
 
 	attachedChannel := make(chan string, len(expectedVolumes))
 	attachVolume = func(volume *AllocatedVolume) error {
-		attachedChannel <- volume.VolumeId
+		attachedChannel <- volume.VolumeID
 		return nil
 	}
 	underTest.AttachVolumes()
 	close(attachedChannel)
 	attached := make(map[string]bool)
-	for volumeId := range attachedChannel {
-		attached[volumeId] = true
+	for volumeID := range attachedChannel {
+		attached[volumeID] = true
 	}
 	return attached
 }
@@ -214,14 +214,14 @@ func captureDetachedVolumes(expectedVolumes []string, underTest *EC2Instance) ma
 
 	detachedChannel := make(chan string, len(expectedVolumes))
 	detachVolume = func(volume *AllocatedVolume) error {
-		detachedChannel <- volume.VolumeId
+		detachedChannel <- volume.VolumeID
 		return nil
 	}
 	underTest.DetachVolumes()
 	close(detachedChannel)
 	detached := make(map[string]bool)
-	for volumeId := range detachedChannel {
-		detached[volumeId] = true
+	for volumeID := range detachedChannel {
+		detached[volumeID] = true
 	}
 	return detached
 }

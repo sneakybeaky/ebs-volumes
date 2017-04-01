@@ -10,54 +10,55 @@ import (
 	"github.com/sneakybeaky/ebs-volumes/shared/log"
 )
 
+// AllocatedVolume represents an EBS volume that's been allocated to an EC2 Instance
 type AllocatedVolume struct {
-	VolumeId   string
+	VolumeID   string
 	DeviceName string
-	InstanceId string
+	InstanceID string
 	svc        ec2iface.EC2API
 }
 
 // NewAllocatedVolume returns a new instance of AllocatedVolume
-func NewAllocatedVolume(volumeId string, deviceName string, instanceId string, svc ec2iface.EC2API) *AllocatedVolume {
+func NewAllocatedVolume(volumeID string, deviceName string, instanceID string, svc ec2iface.EC2API) *AllocatedVolume {
 
-	return &AllocatedVolume{VolumeId: volumeId, DeviceName: deviceName, InstanceId: instanceId, svc: svc}
+	return &AllocatedVolume{VolumeID: volumeID, DeviceName: deviceName, InstanceID: instanceID, svc: svc}
 }
 
 func (volume AllocatedVolume) String() string {
-	return fmt.Sprintf("AllocatedVolume{ VolumeId : %s, DeviceName : %s, InstanceId : %s}", volume.VolumeId, volume.DeviceName, volume.InstanceId)
+	return fmt.Sprintf("AllocatedVolume{ VolumeID : %s, DeviceName : %s, InstanceID : %s}", volume.VolumeID, volume.DeviceName, volume.InstanceID)
 }
 
 // Attach attempts to attach the volume
 func (volume AllocatedVolume) Attach() error {
 
-	log.Info.Printf("Attaching Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
+	log.Info.Printf("Attaching Volume (%s) at (%s)\n", volume.VolumeID, volume.DeviceName)
 
 	attached, err := volume.Attached()
 	if err != nil {
 		return fmt.Errorf("Error Attaching volume (%s) to instance (%s), cause : \"%s\"",
-			volume.VolumeId, volume.InstanceId, err.Error())
+			volume.VolumeID, volume.InstanceID, err.Error())
 	}
 
 	if attached {
-		log.Debug.Printf("Volume (%s) already attached - skipping\n", volume.VolumeId)
+		log.Debug.Printf("Volume (%s) already attached - skipping\n", volume.VolumeID)
 		return nil
 	}
 
 	if err := volume.waitUntilAvailable(); err != nil {
 		return fmt.Errorf("Error waiting for Volume (%s) to become available, error: %s",
-			volume.VolumeId, err)
+			volume.VolumeID, err)
 	}
 
 	opts := &ec2.AttachVolumeInput{
 		Device:     aws.String(volume.DeviceName),
-		InstanceId: aws.String(volume.InstanceId),
-		VolumeId:   aws.String(volume.VolumeId),
+		InstanceId: aws.String(volume.InstanceID),
+		VolumeId:   aws.String(volume.VolumeID),
 	}
 
 	if _, err := volume.svc.AttachVolume(opts); err != nil {
 
 		return fmt.Errorf("Error attaching volume (%s) to instance (%s), cause: \"%s\"",
-			volume.VolumeId, volume.InstanceId, err.Error())
+			volume.VolumeID, volume.InstanceID, err.Error())
 
 	}
 
@@ -65,10 +66,10 @@ func (volume AllocatedVolume) Attach() error {
 
 	if err != nil {
 		return fmt.Errorf("Error waiting for Volume (%s) to attach at (%s), error: %s",
-			volume.VolumeId, volume.DeviceName, err)
+			volume.VolumeID, volume.DeviceName, err)
 	}
 
-	log.Info.Printf("Attached Volume (%s) at (%s)\n", volume.VolumeId, volume.DeviceName)
+	log.Info.Printf("Attached Volume (%s) at (%s)\n", volume.VolumeID, volume.DeviceName)
 
 	return nil
 
@@ -77,29 +78,29 @@ func (volume AllocatedVolume) Attach() error {
 // Detach attempts to detach the volume
 func (volume AllocatedVolume) Detach() error {
 
-	log.Info.Printf("Detaching Volume (%s) from (%s)\n", volume.VolumeId, volume.DeviceName)
+	log.Info.Printf("Detaching Volume (%s) from (%s)\n", volume.VolumeID, volume.DeviceName)
 
 	attached, err := volume.Attached()
 	if err != nil {
 		return fmt.Errorf("Error Detaching volume (%s) from instance (%s), cause : \"%s\"",
-			volume.VolumeId, volume.InstanceId, err.Error())
+			volume.VolumeID, volume.InstanceID, err.Error())
 	}
 
 	if !attached {
-		log.Debug.Printf("Volume (%s) not attached - skipping\n", volume.VolumeId)
+		log.Debug.Printf("Volume (%s) not attached - skipping\n", volume.VolumeID)
 		return nil
 	}
 
 	opts := &ec2.DetachVolumeInput{
 		Device:     aws.String(volume.DeviceName),
-		InstanceId: aws.String(volume.InstanceId),
-		VolumeId:   aws.String(volume.VolumeId),
+		InstanceId: aws.String(volume.InstanceID),
+		VolumeId:   aws.String(volume.VolumeID),
 	}
 
 	if _, err := volume.svc.DetachVolume(opts); err != nil {
 
 		return fmt.Errorf("Error Detaching volume (%s) to instance (%s), cause : \"%s\"",
-			volume.VolumeId, volume.InstanceId, err.Error())
+			volume.VolumeID, volume.InstanceID, err.Error())
 
 	}
 
@@ -107,10 +108,10 @@ func (volume AllocatedVolume) Detach() error {
 
 	if err != nil {
 		return fmt.Errorf("Error waiting for Volume (%s) to detach at (%s), cause: %s",
-			volume.VolumeId, volume.DeviceName, err.Error())
+			volume.VolumeID, volume.DeviceName, err.Error())
 	}
 
-	log.Info.Printf("Detached Volume (%s) from (%s)\n", volume.VolumeId, volume.DeviceName)
+	log.Info.Printf("Detached Volume (%s) from (%s)\n", volume.VolumeID, volume.DeviceName)
 
 	return nil
 
@@ -127,7 +128,7 @@ var doAttached = func(volume *AllocatedVolume) (bool, error) {
 	if err != nil {
 
 		return false, fmt.Errorf("Error getting volume status for Volume (%s), cause: \"%s\"",
-			volume.VolumeId, err.Error())
+			volume.VolumeID, err.Error())
 
 	}
 
@@ -142,13 +143,13 @@ func (volume AllocatedVolume) Info(w io.Writer) error {
 	if err != nil {
 
 		return fmt.Errorf("Error getting volume status for Volume (%s), cause: \"%s\"",
-			volume.VolumeId, err.Error())
+			volume.VolumeID, err.Error())
 
 	}
 
 	volumeStatus := status.Volumes[0]
 	fmt.Fprintf(w, "Volume ID (%s), Device Name (%s), Status is %s\n",
-		volume.VolumeId, volume.DeviceName, *volumeStatus.State)
+		volume.VolumeID, volume.DeviceName, *volumeStatus.State)
 
 	return nil
 }
@@ -156,11 +157,11 @@ func (volume AllocatedVolume) Info(w io.Writer) error {
 // describeVolumesInput provides the structure to describe this volume when attached to the designated EC2 instance
 func (volume AllocatedVolume) describeVolumesInputWhenAttached() *ec2.DescribeVolumesInput {
 	return &ec2.DescribeVolumesInput{
-		VolumeIds: []*string{aws.String(volume.VolumeId)},
+		VolumeIds: []*string{aws.String(volume.VolumeID)},
 		Filters: []*ec2.Filter{
 			{
 				Name:   aws.String("attachment.instance-id"),
-				Values: []*string{aws.String(volume.InstanceId)},
+				Values: []*string{aws.String(volume.InstanceID)},
 			},
 			{
 				Name:   aws.String("attachment.status"),
@@ -173,13 +174,13 @@ func (volume AllocatedVolume) describeVolumesInputWhenAttached() *ec2.DescribeVo
 // describeVolumesInput provides the structure to describe this volume
 func (volume AllocatedVolume) describeVolumesInput() *ec2.DescribeVolumesInput {
 	return &ec2.DescribeVolumesInput{
-		VolumeIds: []*string{aws.String(volume.VolumeId)},
+		VolumeIds: []*string{aws.String(volume.VolumeID)},
 	}
 }
 
 func (volume AllocatedVolume) waitUntilAvailable() error {
 
-	log.Debug.Printf("Waiting for volume (%s) to become available\n", volume.VolumeId)
+	log.Debug.Printf("Waiting for volume (%s) to become available\n", volume.VolumeID)
 	return volume.svc.WaitUntilVolumeAvailable(volume.describeVolumesInput())
 }
 
@@ -191,7 +192,7 @@ func (volume AllocatedVolume) waitUntilAttached() error {
 
 	input := volume.describeVolumesInputWhenAttached()
 
-	log.Debug.Printf("Waiting for volume (%s) to be attached at (%s)\n", volume.VolumeId, volume.DeviceName)
+	log.Debug.Printf("Waiting for volume (%s) to be attached at (%s)\n", volume.VolumeID, volume.DeviceName)
 
 	return volume.svc.WaitUntilVolumeInUse(input)
 

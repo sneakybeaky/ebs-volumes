@@ -34,7 +34,7 @@ func TestFindAllocatedVolumes(t *testing.T) {
 
 func assertVolumesEqual(t *testing.T, left *shared.AllocatedVolume, right *shared.AllocatedVolume) {
 
-	if left.DeviceName != right.DeviceName || left.InstanceId != right.InstanceId || left.VolumeId != right.VolumeId {
+	if left.DeviceName != right.DeviceName || left.InstanceID != right.InstanceID || left.VolumeID != right.VolumeID {
 		t.Errorf("Expected %s but got %s", left.String(), right.String())
 	}
 }

@@ -51,6 +51,7 @@ type EC2Instance struct {
 	metadata iface.Metadata
 }
 
+// NewEC2Instance returns a new EC2Instance
 func NewEC2Instance(metadata iface.Metadata, svc ec2iface.EC2API) *EC2Instance {
 
 	return &EC2Instance{
@@ -60,7 +61,7 @@ func NewEC2Instance(metadata iface.Metadata, svc ec2iface.EC2API) *EC2Instance {
 
 }
 
-func (e EC2Instance) Tags() ([]*ec2.TagDescription, error) {
+func (e EC2Instance) tags() ([]*ec2.TagDescription, error) {
 
 	instanceid, err := e.metadata.InstanceID()
 
@@ -88,10 +89,11 @@ func (e EC2Instance) Tags() ([]*ec2.TagDescription, error) {
 	return resp.Tags, nil
 }
 
+// AllocatedVolumes returns the volumes allocated to this instance
 func (e EC2Instance) AllocatedVolumes() ([]*AllocatedVolume, error) {
 	var allocated []*AllocatedVolume
 
-	tags, err := e.Tags()
+	tags, err := e.tags()
 
 	if err != nil {
 		return allocated, err
@@ -111,7 +113,7 @@ func (e EC2Instance) AllocatedVolumes() ([]*AllocatedVolume, error) {
 
 //shouldDetachVolumes returns true if volumes should be detached, false otherwise
 func (e EC2Instance) shouldDetachVolumes() (bool, error) {
-	tags, err := e.Tags()
+	tags, err := e.tags()
 
 	if err != nil {
 		return false, err
@@ -138,6 +140,7 @@ func (e EC2Instance) shouldDetachVolumes() (bool, error) {
 
 }
 
+// DetachVolumes attempts to detach the allocated volumes attached to this instance, if the necessary tag has been set
 func (e EC2Instance) DetachVolumes() error {
 
 	detachVolumes, err := e.shouldDetachVolumes()
@@ -154,10 +157,12 @@ func (e EC2Instance) DetachVolumes() error {
 
 }
 
+// AttachVolumes attempts to attach the allocated volumes
 func (e EC2Instance) AttachVolumes() error {
 	return e.applyToVolumes(attachVolume)
 }
 
+// ShowVolumesInfo prints information about the allocated volumes
 func (e EC2Instance) ShowVolumesInfo() error {
 	return e.applyToVolumes(showVolumeInfo)
 }
@@ -192,36 +197,38 @@ var showVolumeInfo = func(volume *AllocatedVolume) error {
 }
 
 func (e EC2Instance) applyToVolumes(action func(volume *AllocatedVolume) error) error {
-	if volumes, err := e.AllocatedVolumes(); err != nil {
+
+	volumes, err := e.AllocatedVolumes();
+
+	if err != nil {
 		return fmt.Errorf("Unable to find allocated volumes : %v", err)
-	} else {
+	}
 
-		var wg sync.WaitGroup
+	var wg sync.WaitGroup
 
-		failed := false
+	failed := false
 
-		for _, volume := range volumes {
+	for _, volume := range volumes {
 
-			wg.Add(1)
-			go func(action func(volume *AllocatedVolume) error, volume *AllocatedVolume) {
+		wg.Add(1)
+		go func(action func(volume *AllocatedVolume) error, volume *AllocatedVolume) {
 
-				defer wg.Done()
-				err := action(volume)
+			defer wg.Done()
+			err := action(volume)
 
-				if err != nil {
-					log.Error.Println(err)
-					failed = true
-				}
+			if err != nil {
+				log.Error.Println(err)
+				failed = true
+			}
 
-			}(action, volume)
+		}(action, volume)
 
-		}
+	}
 
-		wg.Wait()
+	wg.Wait()
 
-		if failed {
-			return errors.New("Failed for some volumes")
-		}
+	if failed {
+		return errors.New("Failed for some volumes")
 	}
 
 	return nil

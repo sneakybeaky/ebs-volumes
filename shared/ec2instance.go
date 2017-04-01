@@ -170,7 +170,7 @@ func (e EC2Instance) ShowVolumesInfo() error {
 var attachVolume = func(volume *AllocatedVolume) error {
 
 	if err := volume.Attach(); err != nil {
-		log.Error.Printf("Unable to attach volume : %s\n", err)
+		return fmt.Errorf("Unable to attach volume : %v\n", err)
 	}
 
 	return nil
@@ -188,8 +188,7 @@ var showVolumeInfo = func(volume *AllocatedVolume) error {
 	buf := new(bytes.Buffer)
 
 	if err := volume.Info(buf); err != nil {
-		log.Error.Printf("Unable to get info for volume : %s\n", err)
-		return nil
+		return fmt.Errorf("Unable to get info for volume : %v\n", err)
 	}
 	os.Stdout.WriteString(buf.String())
 

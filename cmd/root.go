@@ -42,6 +42,9 @@ func Execute() {
 	RootCmd.AddCommand(attachCmd)
 	RootCmd.AddCommand(detachCmd)
 
+	RootCmd.SilenceUsage = true
+	RootCmd.SilenceErrors = true
+
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(-1)

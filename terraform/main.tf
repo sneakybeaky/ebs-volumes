@@ -135,6 +135,7 @@ resource "aws_instance" "web" {
     foo = "bar"
     "volume_/dev/sdf" = "${aws_ebs_volume.volume1.id}"
     "volume_/dev/sdg" = "${aws_ebs_volume.volume2.id}"
+    "volume_/dev/sdh" = "vol-0862be5c41a6a896c"
     "detach_volumes" = "true"
   }
 

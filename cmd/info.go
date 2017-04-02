@@ -12,18 +12,26 @@ var infoCmd = &cobra.Command{
 	Short: "Information about volumes and setup",
 	Long:  `Shows the volumes assigned, their status and detach setup`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return printInfo()
+		return apply(showVolumesInfo)
 	},
 }
 
-func printInfo() error {
+func apply(action func(*shared.EC2Instance) error) error {
 
-	instance, err := shared.GetInstance()
+	instance, err := getInstance()
 
 	if err != nil {
 		return fmt.Errorf("unable to get EC2 instance : %v", err)
 	}
 
-	return instance.ShowVolumesInfo()
+	return action(instance)
 
+}
+
+var getInstance = func() (*shared.EC2Instance, error) {
+	return shared.GetInstance()
+}
+
+func showVolumesInfo(instance *shared.EC2Instance) error {
+	return instance.ShowVolumesInfo()
 }

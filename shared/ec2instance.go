@@ -197,7 +197,7 @@ var showVolumeInfo = func(volume *AllocatedVolume) error {
 
 func (e EC2Instance) applyToVolumes(action func(volume *AllocatedVolume) error) error {
 
-	volumes, err := e.AllocatedVolumes();
+	volumes, err := e.AllocatedVolumes()
 
 	if err != nil {
 		return fmt.Errorf("unable to find allocated volumes : %v", err)

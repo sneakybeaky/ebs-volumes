@@ -28,7 +28,7 @@ func GetInstance() (*EC2Instance, error) {
 
 	sess, err := session.NewSession()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create AWS session : %v", err)
+		return nil, fmt.Errorf("failed to create AWS session : %v", err)
 	}
 
 	metadata := NewEC2InstanceMetadata(sess)
@@ -36,7 +36,7 @@ func GetInstance() (*EC2Instance, error) {
 	region, err := metadata.Region()
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get AWS region : %v", err)
+		return nil, fmt.Errorf("failed to get AWS region : %v", err)
 	}
 
 	sess.Config.Region = &region
@@ -170,7 +170,7 @@ func (e EC2Instance) ShowVolumesInfo() error {
 var attachVolume = func(volume *AllocatedVolume) error {
 
 	if err := volume.Attach(); err != nil {
-		return fmt.Errorf("Unable to attach volume : %v\n", err)
+		return fmt.Errorf("unable to attach volume : %v\n", err)
 	}
 
 	return nil
@@ -179,7 +179,7 @@ var attachVolume = func(volume *AllocatedVolume) error {
 var detachVolume = func(volume *AllocatedVolume) error {
 
 	if err := volume.Detach(); err != nil {
-		return fmt.Errorf("Unable to detach volume : %v\n", err)
+		return fmt.Errorf("unable to detach volume : %v\n", err)
 	}
 	return nil
 }
@@ -188,7 +188,7 @@ var showVolumeInfo = func(volume *AllocatedVolume) error {
 	buf := new(bytes.Buffer)
 
 	if err := volume.Info(buf); err != nil {
-		return fmt.Errorf("Unable to get info for volume : %v\n", err)
+		return fmt.Errorf("unable to get info for volume : %v\n", err)
 	}
 	os.Stdout.WriteString(buf.String())
 
@@ -200,7 +200,7 @@ func (e EC2Instance) applyToVolumes(action func(volume *AllocatedVolume) error) 
 	volumes, err := e.AllocatedVolumes();
 
 	if err != nil {
-		return fmt.Errorf("Unable to find allocated volumes : %v", err)
+		return fmt.Errorf("unable to find allocated volumes : %v", err)
 	}
 
 	var wg sync.WaitGroup
@@ -227,7 +227,7 @@ func (e EC2Instance) applyToVolumes(action func(volume *AllocatedVolume) error) 
 	wg.Wait()
 
 	if failed {
-		return errors.New("Failed for some volumes")
+		return errors.New("failed for some volumes")
 	}
 
 	return nil

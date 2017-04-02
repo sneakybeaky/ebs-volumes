@@ -21,7 +21,7 @@ func printInfo() error {
 	instance, err := shared.GetInstance()
 
 	if err != nil {
-		return fmt.Errorf("Unable to get EC2 instance : %v", err)
+		return fmt.Errorf("unable to get EC2 instance : %v", err)
 	}
 
 	return instance.ShowVolumesInfo()

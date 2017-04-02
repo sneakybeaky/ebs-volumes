@@ -35,8 +35,8 @@ func (volume AllocatedVolume) Attach() error {
 
 	attached, err := volume.Attached()
 	if err != nil {
-		return fmt.Errorf("Error Attaching volume (%s) to instance (%s), cause : \"%s\"",
-			volume.VolumeID, volume.InstanceID, err.Error())
+		return fmt.Errorf("error Attaching volume (%s) to instance (%s): %v",
+			volume.VolumeID, volume.InstanceID, err)
 	}
 
 	if attached {
@@ -45,7 +45,7 @@ func (volume AllocatedVolume) Attach() error {
 	}
 
 	if err := volume.waitUntilAvailable(); err != nil {
-		return fmt.Errorf("Error waiting for Volume (%s) to become available, error: %s",
+		return fmt.Errorf("error waiting for volume (%s) to become available: %v",
 			volume.VolumeID, err)
 	}
 
@@ -57,15 +57,15 @@ func (volume AllocatedVolume) Attach() error {
 
 	if _, err := volume.svc.AttachVolume(opts); err != nil {
 
-		return fmt.Errorf("Error attaching volume (%s) to instance (%s), cause: \"%s\"",
-			volume.VolumeID, volume.InstanceID, err.Error())
+		return fmt.Errorf("error attaching volume (%s) to instance (%s): %s",
+			volume.VolumeID, volume.InstanceID, err)
 
 	}
 
 	err = volume.waitUntilAttached()
 
 	if err != nil {
-		return fmt.Errorf("Error waiting for Volume (%s) to attach at (%s), error: %s",
+		return fmt.Errorf("error waiting for volume (%s) to attach at (%s): %v",
 			volume.VolumeID, volume.DeviceName, err)
 	}
 
@@ -82,8 +82,8 @@ func (volume AllocatedVolume) Detach() error {
 
 	attached, err := volume.Attached()
 	if err != nil {
-		return fmt.Errorf("Error Detaching volume (%s) from instance (%s), cause : \"%s\"",
-			volume.VolumeID, volume.InstanceID, err.Error())
+		return fmt.Errorf("error Detaching volume (%s) from instance (%s): %v",
+			volume.VolumeID, volume.InstanceID, err)
 	}
 
 	if !attached {
@@ -99,16 +99,16 @@ func (volume AllocatedVolume) Detach() error {
 
 	if _, err := volume.svc.DetachVolume(opts); err != nil {
 
-		return fmt.Errorf("Error Detaching volume (%s) to instance (%s), cause : \"%s\"",
-			volume.VolumeID, volume.InstanceID, err.Error())
+		return fmt.Errorf("error detaching volume (%s) from instance (%s): %s",
+			volume.VolumeID, volume.InstanceID, err)
 
 	}
 
 	err = volume.waitUntilAvailable()
 
 	if err != nil {
-		return fmt.Errorf("Error waiting for Volume (%s) to detach at (%s), cause: %s",
-			volume.VolumeID, volume.DeviceName, err.Error())
+		return fmt.Errorf("error waiting for volume (%s) to detach at (%s): %v",
+			volume.VolumeID, volume.DeviceName, err)
 	}
 
 	log.Info.Printf("Detached Volume (%s) from (%s)\n", volume.VolumeID, volume.DeviceName)
@@ -127,8 +127,8 @@ var doAttached = func(volume *AllocatedVolume) (bool, error) {
 
 	if err != nil {
 
-		return false, fmt.Errorf("Error getting volume status for Volume (%s), cause: \"%s\"",
-			volume.VolumeID, err.Error())
+		return false, fmt.Errorf("error getting volume status for volume (%s): %v",
+			volume.VolumeID, err)
 
 	}
 
@@ -142,8 +142,8 @@ func (volume AllocatedVolume) Info(w io.Writer) error {
 
 	if err != nil {
 
-		return fmt.Errorf("Error getting volume status for Volume (%s), cause: \"%s\"",
-			volume.VolumeID, err.Error())
+		return fmt.Errorf("error getting volume status for volume (%s): %v",
+			volume.VolumeID, err)
 
 	}
 

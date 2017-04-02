@@ -42,3 +42,4 @@ coverage.out
 
 /.GOPATH
 /bin
+.kitchen

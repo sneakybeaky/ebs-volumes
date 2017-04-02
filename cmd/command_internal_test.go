@@ -9,13 +9,12 @@ import (
 )
 
 var commandtests = []struct {
-	command *cobra.Command
+	command     *cobra.Command
 	description string
 }{
 	{infoCmd, "infoCmd"},
 	{detachCmd, "detachCmd"},
 	{attachCmd, "attachCmd"},
-
 }
 
 func TestCommandErrorsWhenNoInstanceFound(t *testing.T) {
@@ -34,7 +33,7 @@ func TestCommandErrorsWhenNoInstanceFound(t *testing.T) {
 		err := tt.command.Execute()
 
 		if err == nil {
-			t.Errorf("No error returned for %s when no EC2 instance found",tt.description)
+			t.Errorf("No error returned for %s when no EC2 instance found", tt.description)
 		}
 
 	}

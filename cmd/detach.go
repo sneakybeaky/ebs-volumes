@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/sneakybeaky/ebs-volumes/shared"
 	"github.com/spf13/cobra"
 )
@@ -12,17 +10,10 @@ var detachCmd = &cobra.Command{
 	Short: "Detach volumes",
 	Long:  `Detaches volumes if enabled via tags`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return detach()
+		return apply(detachVolumes)
 	},
 }
 
-func detach() error {
-
-	instance, err := shared.GetInstance()
-
-	if err != nil {
-		return fmt.Errorf("unable to get EC2 instance : %v", err)
-	}
-
+func detachVolumes(instance *shared.EC2Instance) error {
 	return instance.DetachVolumes()
 }

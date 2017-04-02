@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/sneakybeaky/ebs-volumes/shared_test/helper"
+	"github.com/sneakybeaky/ebs-volumes/shared/testhelpers"
 )
 
 func TestDetachVolumeWhenAttached(t *testing.T) {
@@ -15,14 +15,14 @@ func TestDetachVolumeWhenAttached(t *testing.T) {
 	detachVolumeFuncCalled := false
 	waitUntilVolumeAvailableFuncCalled := false
 
-	mockEC2Service := &helper.MockEC2Service{
+	mockEC2Service := &testhelpers.MockEC2Service{
 		DetachVolumeFunc: func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
 			detachVolumeFuncCalled = true
-			return helper.DetachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
+			return testhelpers.DetachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
 		},
 		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
 			waitUntilVolumeAvailableFuncCalled = true
-			return helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
+			return testhelpers.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
 		},
 	}
 
@@ -57,14 +57,14 @@ func TestDetachVolumeWhenDetached(t *testing.T) {
 	detachVolumeFuncCalled := false
 	waitUntilVolumeAvailableFuncCalled := false
 
-	mockEC2Service := &helper.MockEC2Service{
+	mockEC2Service := &testhelpers.MockEC2Service{
 		DetachVolumeFunc: func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
 			detachVolumeFuncCalled = true
-			return helper.DetachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
+			return testhelpers.DetachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
 		},
 		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
 			waitUntilVolumeAvailableFuncCalled = true
-			return helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
+			return testhelpers.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
 		},
 	}
 
@@ -89,8 +89,8 @@ func TestDetachVolumeErrorCallingWaitUntilVolumeAvailableAPI(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
 
-	mockEC2Service := &helper.MockEC2Service{
-		DetachVolumeFunc: helper.DetachVolumeForVolumeIDSuccess(expectedVolumeID),
+	mockEC2Service := &testhelpers.MockEC2Service{
+		DetachVolumeFunc: testhelpers.DetachVolumeForVolumeIDSuccess(expectedVolumeID),
 		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
 			return errors.New("whoops")
 		},
@@ -117,7 +117,7 @@ func TestDetachVolumeErrorCallingDetachVolumeAPI(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
 
-	mockEC2Service := &helper.MockEC2Service{
+	mockEC2Service := &testhelpers.MockEC2Service{
 		DetachVolumeFunc: func(input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
 			return nil, errors.New("whoops")
 		},
@@ -147,18 +147,18 @@ func TestAttachVolumeWhenAttached(t *testing.T) {
 	attachVolumeFuncCalled := false
 	waitUntilVolumeInUseFunc := false
 
-	mockEC2Service := &helper.MockEC2Service{
+	mockEC2Service := &testhelpers.MockEC2Service{
 		AttachVolumeFunc: func(input *ec2.AttachVolumeInput) (*ec2.VolumeAttachment, error) {
 			attachVolumeFuncCalled = true
-			return helper.AttachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
+			return testhelpers.AttachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
 		},
 		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
 			waitUntilVolumeAvailableFuncCalled = true
-			return helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
+			return testhelpers.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
 		},
 		WaitUntilVolumeInUseFunc: func(input *ec2.DescribeVolumesInput) error {
 			waitUntilVolumeInUseFunc = true
-			return helper.WaitUntilVolumeInUseForVolumeIDSuccess(expectedVolumeID)(input)
+			return testhelpers.WaitUntilVolumeInUseForVolumeIDSuccess(expectedVolumeID)(input)
 		},
 	}
 
@@ -186,18 +186,18 @@ func TestAttachVolumeWhenDetached(t *testing.T) {
 	attachVolumeFuncCalled := false
 	waitUntilVolumeInUseFunc := false
 
-	mockEC2Service := &helper.MockEC2Service{
+	mockEC2Service := &testhelpers.MockEC2Service{
 		AttachVolumeFunc: func(input *ec2.AttachVolumeInput) (*ec2.VolumeAttachment, error) {
 			attachVolumeFuncCalled = true
-			return helper.AttachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
+			return testhelpers.AttachVolumeForVolumeIDSuccess(expectedVolumeID)(input)
 		},
 		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
 			waitUntilVolumeAvailableFuncCalled = true
-			return helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
+			return testhelpers.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID)(input)
 		},
 		WaitUntilVolumeInUseFunc: func(input *ec2.DescribeVolumesInput) error {
 			waitUntilVolumeInUseFunc = true
-			return helper.WaitUntilVolumeInUseForVolumeIDSuccess(expectedVolumeID)(input)
+			return testhelpers.WaitUntilVolumeInUseForVolumeIDSuccess(expectedVolumeID)(input)
 		},
 	}
 
@@ -233,7 +233,7 @@ func TestAttachVolumeErrorCallingWaitUntilVolumeAvailableAPI(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
 
-	mockEC2Service := &helper.MockEC2Service{
+	mockEC2Service := &testhelpers.MockEC2Service{
 		WaitUntilVolumeAvailableFunc: func(input *ec2.DescribeVolumesInput) error {
 			return errors.New("whoops")
 		},
@@ -259,11 +259,11 @@ func TestAttachVolumeErrorCallingAttachVolumeAPI(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
 
-	mockEC2Service := &helper.MockEC2Service{
+	mockEC2Service := &testhelpers.MockEC2Service{
 		AttachVolumeFunc: func(input *ec2.AttachVolumeInput) (*ec2.VolumeAttachment, error) {
 			return nil, errors.New("whoops")
 		},
-		WaitUntilVolumeAvailableFunc: helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID),
+		WaitUntilVolumeAvailableFunc: testhelpers.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID),
 	}
 
 	saved := doAttached
@@ -286,9 +286,9 @@ func TestAttachVolumeErrorCallingWaitUntilVolumeInUseAPI(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
 
-	mockEC2Service := &helper.MockEC2Service{
-		AttachVolumeFunc:             helper.AttachVolumeForVolumeIDSuccess(expectedVolumeID),
-		WaitUntilVolumeAvailableFunc: helper.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID),
+	mockEC2Service := &testhelpers.MockEC2Service{
+		AttachVolumeFunc:             testhelpers.AttachVolumeForVolumeIDSuccess(expectedVolumeID),
+		WaitUntilVolumeAvailableFunc: testhelpers.WaitUntilVolumeAvailableForVolumeIDSuccess(expectedVolumeID),
 		WaitUntilVolumeInUseFunc: func(input *ec2.DescribeVolumesInput) error {
 			return errors.New("whoops")
 		},

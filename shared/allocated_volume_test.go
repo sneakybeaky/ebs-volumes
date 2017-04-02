@@ -1,4 +1,4 @@
-package shared_test
+package shared
 
 import (
 	"bytes"
@@ -9,8 +9,7 @@ import (
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/sneakybeaky/ebs-volumes/shared"
-	"github.com/sneakybeaky/ebs-volumes/shared_test/helper"
+	"github.com/sneakybeaky/ebs-volumes/shared/testhelpers"
 )
 
 func TestInfo(t *testing.T) {
@@ -19,17 +18,17 @@ func TestInfo(t *testing.T) {
 	expectedState := "blooming"
 	expectedDeviceName := "/dev/sdg"
 
-	volume := helper.NewVolumeBuilder().SetState(&expectedState).Build()
+	volume := testhelpers.NewVolumeBuilder().SetState(&expectedState).Build()
 
-	mockEC2Service := &helper.MockEC2Service{
-		DescribeVolumesFunc: helper.DescribeVolumeForID(
+	mockEC2Service := &testhelpers.MockEC2Service{
+		DescribeVolumesFunc: testhelpers.DescribeVolumeForID(
 			expectedVolumeID,
 			&ec2.DescribeVolumesOutput{
 				Volumes: []*ec2.Volume{volume},
 			}),
 	}
 
-	underTest := shared.NewAllocatedVolume(expectedVolumeID, expectedDeviceName, "i-11223344", mockEC2Service)
+	underTest := NewAllocatedVolume(expectedVolumeID, expectedDeviceName, "i-11223344", mockEC2Service)
 
 	buf := new(bytes.Buffer)
 	err := underTest.Info(buf)
@@ -56,13 +55,13 @@ func TestInfoErrorCallingDescribeVolumesAPI(t *testing.T) {
 
 	expectedVolumeID := "vol-54321"
 
-	mockEC2Service := &helper.MockEC2Service{
+	mockEC2Service := &testhelpers.MockEC2Service{
 		DescribeVolumesFunc: func(input *ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error) {
 			return nil, errors.New("whoops")
 		},
 	}
 
-	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
+	underTest := NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
 
 	err := underTest.Info(ioutil.Discard)
 
@@ -75,15 +74,15 @@ func TestInfoErrorCallingDescribeVolumesAPI(t *testing.T) {
 func TestAttachedStatusWhenDetached(t *testing.T) {
 	expectedVolumeID := "vol-54321"
 
-	mockEC2Service := &helper.MockEC2Service{
-		DescribeVolumesFunc: helper.DescribeVolumeForID(
+	mockEC2Service := &testhelpers.MockEC2Service{
+		DescribeVolumesFunc: testhelpers.DescribeVolumeForID(
 			expectedVolumeID,
 			&ec2.DescribeVolumesOutput{
 				Volumes: []*ec2.Volume{},
 			}),
 	}
 
-	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
+	underTest := NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
 	attached, _ := underTest.Attached()
 
 	if attached != false {
@@ -94,17 +93,17 @@ func TestAttachedStatusWhenDetached(t *testing.T) {
 func TestAttachedStatusWhenAttached(t *testing.T) {
 	expectedVolumeID := "vol-54321"
 
-	volume := helper.NewVolumeBuilder().Build()
+	volume := testhelpers.NewVolumeBuilder().Build()
 
-	mockEC2Service := &helper.MockEC2Service{
-		DescribeVolumesFunc: helper.DescribeVolumeForID(
+	mockEC2Service := &testhelpers.MockEC2Service{
+		DescribeVolumesFunc: testhelpers.DescribeVolumeForID(
 			expectedVolumeID,
 			&ec2.DescribeVolumesOutput{
 				Volumes: []*ec2.Volume{volume},
 			}),
 	}
 
-	underTest := shared.NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
+	underTest := NewAllocatedVolume(expectedVolumeID, "/dev/sdg", "i-11223344", mockEC2Service)
 	attached, _ := underTest.Attached()
 
 	if attached != true {

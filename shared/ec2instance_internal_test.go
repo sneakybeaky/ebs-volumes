@@ -5,17 +5,17 @@ import (
 
 	"errors"
 
-	"github.com/sneakybeaky/ebs-volumes/shared_test/helper"
+	"github.com/sneakybeaky/ebs-volumes/shared/testhelpers"
 )
 
 func TestAttachAllocatedVolumes(t *testing.T) {
 
-	metadata := helper.NewMockMetadata("id-98765", "erewhon")
+	metadata := testhelpers.NewMockMetadata("id-98765", "erewhon")
 
-	mockEC2Service := helper.NewMockEC2Service()
+	mockEC2Service := testhelpers.NewMockEC2Service()
 
-	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance("id-98765",
-		helper.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", "id-98765", "vol-1234567").WithVolume("/dev/sdb", "id-98765", "vol-54321").Build())
+	mockEC2Service.DescribeTagsFunc = testhelpers.DescribeVolumeTagsForInstance("id-98765",
+		testhelpers.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", "id-98765", "vol-1234567").WithVolume("/dev/sdb", "id-98765", "vol-54321").Build())
 
 	expectedVolumes := []string{"vol-1234567", "vol-54321"}
 
@@ -30,12 +30,12 @@ func TestAttachAllocatedVolumes(t *testing.T) {
 func TestDetachAllocatedVolumes(t *testing.T) {
 
 	instanceID := "id-98765"
-	metadata := helper.NewMockMetadata(instanceID, "erewhon")
+	metadata := testhelpers.NewMockMetadata(instanceID, "erewhon")
 
-	mockEC2Service := helper.NewMockEC2Service()
+	mockEC2Service := testhelpers.NewMockEC2Service()
 
-	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance(instanceID,
-		helper.NewDescribeTagsOutputBuilder().DetachVolumes(instanceID).WithVolume("/dev/sda", instanceID, "vol-1234567").WithVolume("/dev/sdb", instanceID, "vol-54321").Build())
+	mockEC2Service.DescribeTagsFunc = testhelpers.DescribeVolumeTagsForInstance(instanceID,
+		testhelpers.NewDescribeTagsOutputBuilder().DetachVolumes(instanceID).WithVolume("/dev/sda", instanceID, "vol-1234567").WithVolume("/dev/sdb", instanceID, "vol-54321").Build())
 
 	expectedVolumes := []string{"vol-1234567", "vol-54321"}
 
@@ -49,12 +49,12 @@ func TestDetachAllocatedVolumes(t *testing.T) {
 
 func TestVolumesNotDetachedWhenTagUnset(t *testing.T) {
 
-	metadata := helper.NewMockMetadata("id-98765", "erewhon")
+	metadata := testhelpers.NewMockMetadata("id-98765", "erewhon")
 
-	mockEC2Service := helper.NewMockEC2Service()
+	mockEC2Service := testhelpers.NewMockEC2Service()
 
-	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance("id-98765",
-		helper.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", "id-98765", "vol-1234567").WithVolume("/dev/sdb", "id-98765", "vol-54321").Build())
+	mockEC2Service.DescribeTagsFunc = testhelpers.DescribeVolumeTagsForInstance("id-98765",
+		testhelpers.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", "id-98765", "vol-1234567").WithVolume("/dev/sdb", "id-98765", "vol-54321").Build())
 
 	var underTest = NewEC2Instance(metadata, mockEC2Service)
 
@@ -70,12 +70,12 @@ func TestVolumesNotDetachedWhenTagValueIsNotTrue(t *testing.T) {
 
 	instanceID := "id-98765"
 
-	metadata := helper.NewMockMetadata(instanceID, "erewhon")
+	metadata := testhelpers.NewMockMetadata(instanceID, "erewhon")
 
-	mockEC2Service := helper.NewMockEC2Service()
+	mockEC2Service := testhelpers.NewMockEC2Service()
 
-	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance(instanceID,
-		helper.NewDescribeTagsOutputBuilder().DetachVolumesValue(instanceID, "false").WithVolume("/dev/sda", instanceID, "vol-1234567").WithVolume("/dev/sdb", instanceID, "vol-54321").Build())
+	mockEC2Service.DescribeTagsFunc = testhelpers.DescribeVolumeTagsForInstance(instanceID,
+		testhelpers.NewDescribeTagsOutputBuilder().DetachVolumesValue(instanceID, "false").WithVolume("/dev/sda", instanceID, "vol-1234567").WithVolume("/dev/sdb", instanceID, "vol-54321").Build())
 
 	var underTest = NewEC2Instance(metadata, mockEC2Service)
 
@@ -89,12 +89,12 @@ func TestVolumesNotDetachedWhenTagValueIsNotTrue(t *testing.T) {
 
 func TestErrorReturnedWhenDetachVolumeErrors(t *testing.T) {
 	instanceID := "id-98765"
-	metadata := helper.NewMockMetadata(instanceID, "erewhon")
+	metadata := testhelpers.NewMockMetadata(instanceID, "erewhon")
 
-	mockEC2Service := helper.NewMockEC2Service()
+	mockEC2Service := testhelpers.NewMockEC2Service()
 
-	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance(instanceID,
-		helper.NewDescribeTagsOutputBuilder().DetachVolumes(instanceID).WithVolume("/dev/sda", instanceID, "vol-1234567").Build())
+	mockEC2Service.DescribeTagsFunc = testhelpers.DescribeVolumeTagsForInstance(instanceID,
+		testhelpers.NewDescribeTagsOutputBuilder().DetachVolumes(instanceID).WithVolume("/dev/sda", instanceID, "vol-1234567").Build())
 
 	var underTest = NewEC2Instance(metadata, mockEC2Service)
 
@@ -116,12 +116,12 @@ func TestErrorReturnedWhenDetachVolumeErrors(t *testing.T) {
 
 func TestErrorReturnedWhenAttachVolumeErrors(t *testing.T) {
 	instanceID := "id-98765"
-	metadata := helper.NewMockMetadata(instanceID, "erewhon")
+	metadata := testhelpers.NewMockMetadata(instanceID, "erewhon")
 
-	mockEC2Service := helper.NewMockEC2Service()
+	mockEC2Service := testhelpers.NewMockEC2Service()
 
-	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance(instanceID,
-		helper.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", instanceID, "vol-1234567").Build())
+	mockEC2Service.DescribeTagsFunc = testhelpers.DescribeVolumeTagsForInstance(instanceID,
+		testhelpers.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", instanceID, "vol-1234567").Build())
 
 	var underTest = NewEC2Instance(metadata, mockEC2Service)
 
@@ -143,12 +143,12 @@ func TestErrorReturnedWhenAttachVolumeErrors(t *testing.T) {
 
 func TestErrorReturnedWhenInfoErrors(t *testing.T) {
 	instanceID := "id-98765"
-	metadata := helper.NewMockMetadata(instanceID, "erewhon")
+	metadata := testhelpers.NewMockMetadata(instanceID, "erewhon")
 
-	mockEC2Service := helper.NewMockEC2Service()
+	mockEC2Service := testhelpers.NewMockEC2Service()
 
-	mockEC2Service.DescribeTagsFunc = helper.DescribeVolumeTagsForInstance(instanceID,
-		helper.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", instanceID, "vol-1234567").Build())
+	mockEC2Service.DescribeTagsFunc = testhelpers.DescribeVolumeTagsForInstance(instanceID,
+		testhelpers.NewDescribeTagsOutputBuilder().WithVolume("/dev/sda", instanceID, "vol-1234567").Build())
 
 	var underTest = NewEC2Instance(metadata, mockEC2Service)
 

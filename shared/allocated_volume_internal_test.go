@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/sneakybeaky/ebs-volumes/shared/internal/helper"
+	"github.com/sneakybeaky/ebs-volumes/shared_test/helper"
 )
 
 func TestDetachVolumeWhenAttached(t *testing.T) {

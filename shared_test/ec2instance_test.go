@@ -1,10 +1,10 @@
-package shared_test
+package shared
 
 import (
 	"testing"
 
 	"github.com/sneakybeaky/ebs-volumes/shared"
-	"github.com/sneakybeaky/ebs-volumes/shared/internal/helper"
+	"github.com/sneakybeaky/ebs-volumes/shared_test/helper"
 )
 
 func TestFindAllocatedVolumes(t *testing.T) {

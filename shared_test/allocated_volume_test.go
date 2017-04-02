@@ -10,7 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sneakybeaky/ebs-volumes/shared"
-	"github.com/sneakybeaky/ebs-volumes/shared/internal/helper"
+	"github.com/sneakybeaky/ebs-volumes/shared_test/helper"
 )
 
 func TestInfo(t *testing.T) {

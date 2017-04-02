@@ -5,7 +5,7 @@ import (
 
 	"errors"
 
-	"github.com/sneakybeaky/ebs-volumes/shared/internal/helper"
+	"github.com/sneakybeaky/ebs-volumes/shared_test/helper"
 )
 
 func TestAttachAllocatedVolumes(t *testing.T) {

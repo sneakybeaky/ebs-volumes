@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sneakybeaky/ebs-volumes/shared"
 	"github.com/sneakybeaky/ebs-volumes/shared/log"
 	"github.com/spf13/cobra"
-	"github.com/sneakybeaky/ebs-volumes/shared"
 )
 
 var verbose bool

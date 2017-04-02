@@ -9,24 +9,6 @@ import (
 	"github.com/sneakybeaky/ebs-volumes/shared/testhelpers"
 )
 
-func TestErrorReturnedWhenNoInstanceFound(t *testing.T) {
-
-	saved := getInstance
-	defer func() {
-		getInstance = saved
-	}()
-
-	getInstance = func() (*shared.EC2Instance, error) {
-		return nil, errors.New("No instance available")
-	}
-
-	err := infoCmd.Execute()
-
-	if err == nil {
-		t.Error("No error returned")
-	}
-}
-
 func TestErrorReturnedWhenShowVolumesErrors(t *testing.T) {
 	instanceID := "id-98765"
 	metadata := testhelpers.NewMockMetadata(instanceID, "erewhon")

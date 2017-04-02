@@ -6,6 +6,7 @@ import (
 
 	"github.com/sneakybeaky/ebs-volumes/shared/log"
 	"github.com/spf13/cobra"
+	"github.com/sneakybeaky/ebs-volumes/shared"
 )
 
 var verbose bool
@@ -58,4 +59,20 @@ func init() {
 	// will be global for your application.
 
 	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+}
+
+func apply(action func(*shared.EC2Instance) error) error {
+
+	instance, err := getInstance()
+
+	if err != nil {
+		return fmt.Errorf("unable to get EC2 instance : %v", err)
+	}
+
+	return action(instance)
+
+}
+
+var getInstance = func() (*shared.EC2Instance, error) {
+	return shared.GetInstance()
 }

@@ -1,6 +1,6 @@
 = ebs-volumes
 
-`ebs-volumes` is a utility used to attach and detach AWS EBS instances to / from an EC2 instance.
+`ebs-volumes` is a utility used to attach and detach AWS EBS volumes to / from an EC2 instance.
 
 Tags set against the EC2 instance are used to designate the EBS volumes to use, and also whether volumes should be detached.
 

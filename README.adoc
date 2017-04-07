@@ -1,0 +1,64 @@
+= ebs-volumes
+
+`ebs-volumes` is a utility used to attach and detach AWS EBS instances to / from an EC2 instance.
+
+Tags set against the EC2 instance are used to designate the EBS volumes to use, and also whether volumes should be detached.
+
+As the utility is run on the EC2 instance an IAM role must be applied with a policy that allows reading tags and assigning volumes.
+
+
+= Operations
+
+All operations with ebs-volumes must be run on the EC2 instance you wish to attach or detach volumes from.
+For detailed options simply invoke `ebs-volumes` with no arguments to get help.
+
+== Attaching volumes
+
+Tags are used to indicate which volumes the EC2 instance can attach. The format used is
+
+    volume_<device_name> = <volume_id>
+
+For example
+
+    volume_/dev/sdh = vol-1234567890abcdef0
+
+To run the attach operation
+
+    $ ./ebs-volumes attach
+
+If the operation fails for any volume a non zero exit code is returned.
+
+
+== Detaching volumes
+
+To detach volumes the tag `detach_volumes` must be set to `true`.
+
+To run the detach operation
+
+    $ ./ebs-volumes detach
+
+If the operation fails for any volume a non zero exit code is returned.
+
+
+= IAM Roles and Policy
+
+The EC2 instance needs permission to read its own tags, and examine, attach and detach the designated volumes.
+
+For example
+
+[source,json]
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeTags",
+        "ec2:DescribeVolumes",
+        "ec2:AttachVolume",
+        "ec2:DetachVolume"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}

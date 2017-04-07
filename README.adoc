@@ -1,5 +1,7 @@
 = ebs-volumes
 
+image:https://goreportcard.com/badge/github.com/sneakybeaky/ebs-volumes[link="https://goreportcard.com/report/github.com/sneakybeaky/ebs-volumes"]
+
 `ebs-volumes` is a utility used to attach and detach AWS EBS volumes to / from an EC2 instance.
 
 Tags set against the EC2 instance are used to designate the EBS volumes to use, and also whether volumes should be detached.
